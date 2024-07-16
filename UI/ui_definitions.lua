@@ -166,6 +166,7 @@ function G.FUNCS.config_challenger(e)
   local ref_table = S.TEMP_SETTINGS.modules.challenger_plus.features
   local settings = {
     { val = "retry_button", table = ref_table, label = "Retry Button" },
+    { val = "hand_anim_delay", table = ref_table, label = "Remove hand anim delay"},
   }
   local t = s_create_generic_options({
     apply_func = "apply_settings",

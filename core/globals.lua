@@ -35,6 +35,7 @@ function Saturn:set_globals()
         enabled = false,
         features = {
           retry_button = false,
+          hand_anim_delay = false,
         }
       }
     }

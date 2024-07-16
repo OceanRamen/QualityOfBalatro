@@ -112,3 +112,12 @@ payload = """
 """
 overwrite = false
 match_indent = true
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = "local delay = 0.65"
+position = "at"
+payload = "local delay = S.SETTINGS.modules.challenger_plus.features.hand_anim_delay and 0 or 0.65"
+overwrite = true
+match_indent = true
