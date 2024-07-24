@@ -41,6 +41,10 @@ local function saturn_get_settings_tab(_tab)
         toggle_ref = S.TEMP_SETTINGS.modules.challenger_plus,
         config_button = "config_challenger",
       }),
+      s_create_feature_options({
+        name = "RemoveAnim",
+        toggle_ref = S.TEMP_SETTINGS.modules.remove_animations,
+      })
     }
     return {
       n = G.UIT.ROOT,
@@ -161,11 +165,13 @@ function G.FUNCS.config_deckviewer(e)
   })
 end
 
+
 function G.FUNCS.config_challenger(e)
   G.SETTINGS.paused = true
   local ref_table = S.TEMP_SETTINGS.modules.challenger_plus.features
   local settings = {
     { val = "retry_button", table = ref_table, label = "Retry Button" },
+    { val = "mass_use_button", table = ref_table, label = "Mass Use Button"}
   }
   local t = s_create_generic_options({
     apply_func = "apply_settings",
