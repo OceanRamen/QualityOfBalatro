@@ -72,27 +72,67 @@ local joker_types = {
     ['+ hands'] = {
         'Burglar',
     },
-    ['+ chips'] = {
-        'Sly Joker',
-        'Wily Joker',
-        'Clever Joker',
-        'Devious Joker',
-        'Crafty Joker',
-        'Banner',
-        'Scary Face',
-        'Odd Todd',
+    ['+ chips scale'] = {
         'Runner',
-        'Ice Cream',
         'Blue Joker',
-        'Square Joker',
         'Stone Joker',
         'Bull',
         'Castle',
-        'Arrowhead',
         'Wee Joker',
-        'Stuntman'
     },
-    ['+ mult'] = {
+    ['+ mult scale'] = {
+        'Abstract Joker',
+        'Supernova',
+        'Ride the Bus',
+        'Green Joker',
+        'Red Card',
+        'Erosion',
+        'Fortune Teller',
+        'Flash Card',
+        'Spare Trousers',
+        'Swashbuckler',
+        'Bootstraps',
+    },
+    ['x mult scale'] = {
+        'Steel Joker',
+        'Constellation',
+        'Madness',
+        'Vampire',
+        'Hologram',
+        'Lucky Cat',
+        'Campfire',
+        'Throwback',
+        'Glass Joker',
+        'Hit the Road',
+        'Caino',
+        'Yorick',
+        'Obelisk',
+    },
+    ['activations'] = {
+        'Scholar',
+        'Walkie Talkie',
+        'Joker Stencil',
+        'Loyalty Card',
+        'Blackboard',
+        'Cavendish',
+        'Card Sharp',
+        'Baron',
+        'Photograph',
+        'Baseball Card',
+        'Ancient Joker',
+        'Ramen',
+        'Acrobat',
+        'Bloodstone',
+        'Flower Pot',
+        'The Idol',
+        'Seeing Double',
+        'The Duo',
+        'The Trio',
+        'The Family',
+        'The Order',
+        'The Tribe',
+        'Driver\'s License',
+        'Triboulet',
         'Joker',
         'Greedy Joker',
         'Lusty Joker',
@@ -108,68 +148,24 @@ local joker_types = {
         'Misprint',
         'Raised Fist',
         'Fibonacci',
-        'Abstract Joker',
         'Gros Michel',
         'Even Steven',
-        'Supernova',
-        'Ride the Bus',
-        'Green Joker',
-        'Red Card',
-        'Erosion',
-        'Fortune Teller',
-        'Flash Card',
         'Popcorn',
-        'Spare Trousers',
         'Smiley Face',
-        'Swashbuckler',
         'Onyx Agate',
         'Shoot the Moon',
-        'Bootstraps',
+        'Sly Joker',
+        'Wily Joker',
+        'Clever Joker',
+        'Devious Joker',
+        'Crafty Joker',
+        'Banner',
+        'Scary Face',
+        'Odd Todd',
+        'Ice Cream',
+        'Arrowhead',
+        'Stuntman',
     },
-    ['x mult'] = {
-        'Joker Stencil',
-        'Loyalty Card',
-        'Steel Joker',
-        'Blackboard',
-        'Constellation',
-        'Cavendish',
-        'Card Sharp',
-        'Madness',
-        'Vampire',
-        'Hologram',
-        'Baron',
-        'Photograph',
-        'Lucky Cat',
-        'Baseball Card',
-        'Ancient Joker',
-        'Ramen',
-        'Campfire',
-        'Acrobat',
-        'Throwback',
-        'Bloodstone',
-        'Glass Joker',
-        'Flower Pot',
-        'The Idol',
-        'Seeing Double',
-        'Hit the Road',
-        'The Duo',
-        'The Trio',
-        'The Family',
-        'The Order',
-        'The Tribe',
-        'Driver\'s License',
-        'Caino',
-        'Triboulet',
-        'Yorick',
-    },
-    ['chips/mult'] = {
-        'Scholar',
-        'Walkie Talkie',
-    },
-    ['obelisk'] = {
-        'Obelisk',
-    },
-
 }
 
 -- counter text and options for each type of counter
@@ -209,7 +205,7 @@ local type_table = {
         'Cards Retriggered',
     },
     ['hands upgraded'] = {
-        'Hands Upgraded:',
+        'Hands Upgraded',
         G.C.HAND_LEVELS[6],
     },
     ['joker gen'] = {
@@ -234,33 +230,29 @@ local type_table = {
         G.C.BLUE,
         '+',
     },
-    ['+ chips'] = {
-        'Chips Given',
+    ['+ chips scale'] = {
+        'Chips',
         G.C.BLUE,
         '+',
     },
-    ['+ mult'] = {
-        'Mult Given',
+    ['+ mult scale'] = {
+        'Mult',
         G.C.RED,
         '+',
     },
-    ['x mult'] = {
-        'Mult Given',
+    ['x mult scale'] = {
+        'Mult',
     },
-    ['chips/mult'] = {
-        'Chips / Mult',
-    },
-    ['obelisk'] = {
-        'Most Played Hand',
+    ['activations'] = {
+        'Activations',
     }
 }
 
 local add_to_deck_ref = Card.add_to_deck
 function Card:add_to_deck()
-    if self.ability.set == 'Joker' and not self.st_counter then
-        self:init_st_counter()
-        self.st_ref_table = self.st_counter
-        ben()
+    if self.ability.set == 'Joker' and not self.st_highscore then
+        self:init_st_highscore()
+        self.st_hs_ref_table = self.st_highscore
     end
     add_to_deck_ref(self)
 end
@@ -270,9 +262,10 @@ end
 local save_ref = Card.save
 function Card:save()
     local ref_return = save_ref(self)
-    if self.st_counter then
-        self:init_st_counter(self.st_counter)
-        ref_return['st_counter'] = self.st_counter
+    if self.st_highscore then
+        self:init_st_highscore(self.st_highscore)
+        ref_return['st_highscore'] = self.st_highscore
+        self:update_st_highscore()
     end
     return ref_return
 end
@@ -282,9 +275,9 @@ end
 local load_ref = Card.load
 function Card:load(cardTable, other_card)
     load_ref(self, cardTable, other_card)
-    if cardTable['st_counter'] then
-        self.st_ref_table = cardTable['st_counter']
-        self:init_st_counter(self.st_ref_table)
+    if cardTable['st_highscore'] then
+        self.st_hs_ref_table = cardTable['st_highscore']
+        self:init_st_highscore(self.st_hs_ref_table)
     end
 end
 
@@ -293,23 +286,15 @@ end
 local hover_ref = Card.hover
 function Card:hover()
     hover_ref(self)
-    if self.ability.set == 'Joker' and self.config.h_popup and self.area == G.jokers then
-        if not self.st_counter then
-            self:init_st_counter(self.st_ref_table)
-            self.st_ref_table = self.st_counter
+    if self.ability.set == 'Joker' and self.config.h_popup and self.area ~= G.jokers then
+        if not self.st_highscore then
+            self:init_st_highscore(self.st_hs_ref_table)
+            self.st_hs_ref_table = self.st_highscore
         end
-        if self.st_counter then
-            ben('no')
-            self:show_st_counter()
+        if self.st_highscore then
+            self:update_st_highscore()
+            self:show_st_highscore()
         end
-    end
-end
-
-function ben(string)
-    if string then
-        print(string)
-    else
-        print('ben')
     end
 end
 
@@ -318,20 +303,37 @@ end
 local calculate_joker_ref = Card.calculate_joker
 function Card:calculate_joker(context)
     local ref_return = calculate_joker_ref(self, context)
-    self:calculate_st_counter(context)
+    if self.ability and self.ability.set == 'Joker' then
+        self:calculate_st_highscore(context)
+        self:update_st_highscore()
+    end
     return ref_return
 end
 
 local calc_dollar_ref = Card.calculate_dollar_bonus
 function Card:calculate_dollar_bonus()
     local ref_return = calc_dollar_ref(self)
-    self:end_st_counter_bonus()
+    if self.ability and self.ability.set == 'Joker' then
+        self:end_st_highscore_bonus()
+        self:update_st_highscore()
+    end
     return ref_return
+end
+
+-- function for checking if the card being hovered over is in the collection
+-- dont get why its so complicated but some guy helped me with it
+
+local function inCollection(card)
+    if not G.your_collection then return false end
+    for i = 1, 3 do
+        if (G.your_collection[i] and card.area == G.your_collection[i]) then return true end
+    end
+    return false
 end
 
 -- function for initialising the counter
 
-function Card:init_st_counter(args)
+function Card:init_st_highscore(args)
     local args = args or {}
     for k, v in pairs(joker_types) do
         for _k, _v in pairs(joker_types[k]) do
@@ -341,10 +343,10 @@ function Card:init_st_counter(args)
         end
     end
     if not args.type then return end
-    self.st_counter = {
+    self.st_highscore = {
         _type = args.type or 'ERROR',
         text = args.text or type_table[args.type][1] or 'ERROR',
-        text_colour = G.C.UI.TEXT_LIGHT,
+        text_colour = args.text_colour or G.C.UI.TEXT_LIGHT,
         text_size = args.text_size or 0.3,
         prefix = type_table[args.type][3] or '',
         value = args.value or 0,
@@ -359,16 +361,15 @@ function Card:init_st_counter(args)
         UIBox = {},
         UI = nil,
     }
-    self.st_ref_table = self.st_counter
 end
 
 -- generates a definition for the counter
 -- part of the ui box
 
-function Card:generate_st_counter_defintion()
-    if self.st_counter then
+function Card:generate_st_highscore_defintion()
+    if self.st_highscore then
         if not S.SETTINGS.modules.preferences.compact_view.enabled then
-            self.st_counter.definition = {
+            self.st_highscore.definition = {
                 n = G.UIT.ROOT,
                 config = {
                     align = 'cm',
@@ -380,7 +381,6 @@ function Card:generate_st_counter_defintion()
                         n = G.UIT.R,
                         config = {
                             align = "cm",
-                            colour = G.C.CLEAR,
                         },
                         nodes = {
                             {
@@ -406,8 +406,7 @@ function Card:generate_st_counter_defintion()
                                                 n = G.UIT.R,
                                                 config = {
                                                     align = "cm",
-                                                    minh = 0.36,
-                                                    colour = G.C.CLEAR,
+                                                    minh = 0,
                                                 }, 
                                                 nodes = {
                                                     {
@@ -415,9 +414,28 @@ function Card:generate_st_counter_defintion()
                                                         config = {
                                                             padding = 0.1,
                                                             r = 0.1,
-                                                            text = self.st_counter.value_num > 1 and self.st_counter.text..'s' or self.st_counter.text,
-                                                            scale = self.st_counter.text_size,
-                                                            colour = self.st_counter.text_colour,
+                                                            text = 'Most',
+                                                            scale = self.st_highscore.text_size,
+                                                            colour = self.st_highscore.text_colour,
+                                                        }
+                                                    },
+                                                },
+                                            },
+                                            {
+                                                n = G.UIT.R,
+                                                config = {
+                                                    align = "cm",
+                                                    minh = 0,
+                                                }, 
+                                                nodes = {
+                                                    {
+                                                        n = G.UIT.T,
+                                                        config = {
+                                                            padding = 0.1,
+                                                            r = 0.1,
+                                                            text = self.st_highscore.text,
+                                                            scale = self.st_highscore.text_size,
+                                                            colour = self.st_highscore.text_colour,
                                                         }
                                                     },
                                                 },
@@ -438,16 +456,14 @@ function Card:generate_st_counter_defintion()
                                                         config = {
                                                             align = "cm",
                                                             padding = 0.03,
-                                                            colour = G.C.CLEAR,
                                                         }, 
                                                         nodes = {
                                                             {
                                                                 n = G.UIT.R,
                                                                 config = {
                                                                     align = "cm",
-                                                                    colour = G.C.CLEAR,
                                                                 }, 
-                                                                nodes = self.st_counter['_type'] == 'x mult' and {
+                                                                nodes = self.st_highscore['_type'] == 'x mult scale' and {
                                                                     {
                                                                         n = G.UIT.C,
                                                                         config = {
@@ -461,68 +477,9 @@ function Card:generate_st_counter_defintion()
                                                                                 n = G.UIT.T,
                                                                                 config = {
                                                                                     align = "cm",
-                                                                                    scale = self.st_counter.value_size,
-                                                                                    text = 'X'..self.st_counter.value,
+                                                                                    scale = self.st_highscore.value_size,
+                                                                                    text = 'X'..self.st_highscore.value,
                                                                                     colour = G.C.WHITE,
-                                                                                },
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                }
-                                                                or self.st_counter['_type'] == 'chips/mult' and {
-                                                                    {
-                                                                        n = G.UIT.C,
-                                                                        config = {
-                                                                            align = "cm",
-                                                                            padding = 0.02,
-                                                                            colour = G.C.CLEAR,
-                                                                        },
-                                                                        nodes = {
-                                                                            {
-                                                                                n = G.UIT.T,
-                                                                                config = {
-                                                                                    align = "cm",
-                                                                                    scale = self.st_counter.value_size,
-                                                                                    text = '+'..(self.ability.name == 'Walkie Talkie' and (self.st_counter.value * 10) or self.ability.name == 'Scholar' and (self.st_counter.value * 20)),
-                                                                                    colour = G.C.BLUE,
-                                                                                },
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    {
-                                                                        n = G.UIT.C,
-                                                                        config = {
-                                                                            align = "cm",
-                                                                            padding = 0.02,
-                                                                            colour = G.C.CLEAR,
-                                                                        },
-                                                                        nodes = {
-                                                                            {
-                                                                                n = G.UIT.T,
-                                                                                config = {
-                                                                                    align = "cm",
-                                                                                    scale = self.st_counter.value_size,
-                                                                                    text = ' / ',
-                                                                                    colour = G.C.L_BLACK,
-                                                                                },
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                    {
-                                                                        n = G.UIT.C,
-                                                                        config = {
-                                                                            align = "cm",
-                                                                            padding = 0.02,
-                                                                            colour = G.C.CLEAR,
-                                                                        },
-                                                                        nodes = {
-                                                                            {
-                                                                                n = G.UIT.T,
-                                                                                config = {
-                                                                                    align = "cm",
-                                                                                    scale = self.st_counter.value_size,
-                                                                                    text = '+'..self.st_counter.value*4,
-                                                                                    colour = G.C.RED,
                                                                                 },
                                                                             },
                                                                         },
@@ -535,9 +492,9 @@ function Card:generate_st_counter_defintion()
                                                                             align = "cm",
                                                                             padding = 0.1,
                                                                             r = 0.1,
-                                                                            scale = self.st_counter.value_size,
-                                                                            text = self.ability.name == 'Obelisk' and self.st_counter.value_text or self.st_counter.prefix..self.st_counter.value,
-                                                                            colour = self.st_counter.value_colour ~= G.C.UI.TEXT_LIGHT and self.st_counter.value_colour or G.C.UI.TEXT_DARK,
+                                                                            scale = self.st_highscore.value_size,
+                                                                            text = self.st_highscore.prefix..self.st_highscore.value,
+                                                                            colour = self.st_highscore.value_colour ~= G.C.UI.TEXT_LIGHT and self.st_highscore.value_colour or G.C.UI.TEXT_DARK,
                                                                         },
                                                                     },
                                                                 },
@@ -555,7 +512,7 @@ function Card:generate_st_counter_defintion()
                 },
             }
         else
-            self.st_counter.definition = {
+            self.st_highscore.definition = {
                 n = G.UIT.ROOT,
                 config = {
                     align = 'cm',
@@ -594,12 +551,12 @@ function Card:generate_st_counter_defintion()
                                                 config = {
                                                     padding = 0.1,
                                                     r = 0.1,
-                                                    text = self.st_counter.value_num > 1 and self.st_counter.text..'s:' or self.st_counter.text..':',
-                                                    scale = self.st_counter.text_size,
-                                                    colour = self.st_counter.text_colour,
+                                                    text = 'Most '..self.st_highscore.text..':',
+                                                    scale = self.st_highscore.text_size,
+                                                    colour = self.st_highscore.text_colour,
                                                 }
                                             },
-                                            self.st_counter['_type'] == 'x mult' and {
+                                            self.st_highscore['_type'] == 'x mult scale' and {
                                                 n = G.UIT.C,
                                                 config = {
                                                     align = "cm",
@@ -612,70 +569,13 @@ function Card:generate_st_counter_defintion()
                                                         n = G.UIT.T,
                                                         config = {
                                                             align = "cm",
-                                                            scale = self.st_counter.value_size,
-                                                            text = 'X'..self.st_counter.value,
+                                                            scale = self.st_highscore.value_size,
+                                                            text = 'X'..self.st_highscore.value,
                                                             colour = G.C.WHITE,
                                                         },
                                                     },
                                                 },
                                             } 
-                                            or self.st_counter['_type'] == 'chips/mult' and {
-                                                n = G.UIT.C,
-                                                config = {
-                                                    align = "cm",
-                                                    padding = 0.02,
-                                                    colour = G.C.CLEAR,
-                                                },
-                                                nodes = {
-                                                    {
-                                                        n = G.UIT.T,
-                                                        config = {
-                                                            align = "cm",
-                                                            scale = self.st_counter.value_size,
-                                                            text = '+'..(self.ability.name == 'Walkie Talkie' and (self.st_counter.value * 10) or self.ability.name == 'Scholar' and (self.st_counter.value * 20)),
-                                                            colour = G.C.BLUE,
-                                                        },
-                                                    },
-                                                },
-                                                {
-                                                    n = G.UIT.C,
-                                                    config = {
-                                                        align = "cm",
-                                                        padding = 0.02,
-                                                        colour = G.C.CLEAR,
-                                                    },
-                                                    nodes = {
-                                                        {
-                                                            n = G.UIT.T,
-                                                            config = {
-                                                                align = "cm",
-                                                                scale = self.st_counter.value_size,
-                                                                text = ' ',
-                                                                colour = G.C.L_BLACK,
-                                                            },
-                                                        },
-                                                    },
-                                                },
-                                                {
-                                                    n = G.UIT.C,
-                                                    config = {
-                                                        align = "cm",
-                                                        padding = 0.02,
-                                                        colour = G.C.CLEAR,
-                                                    },
-                                                    nodes = {
-                                                        {
-                                                            n = G.UIT.T,
-                                                            config = {
-                                                                align = "cm",
-                                                                scale = self.st_counter.value_size,
-                                                                text = '+'..self.st_counter.value*4,
-                                                                colour = G.C.RED,
-                                                            },
-                                                        },
-                                                    },
-                                                }
-                                            }
                                             or {
                                                 n = G.UIT.C,
                                                 config = {
@@ -690,9 +590,9 @@ function Card:generate_st_counter_defintion()
                                                             align = "cm",
                                                             padding = 0.1,
                                                             r = 0.1,
-                                                            scale = self.st_counter.value_size,
-                                                            text = self.ability.name == 'Obelisk' and self.st_counter.value_text or self.st_counter.prefix..self.st_counter.value,
-                                                            colour = self.st_counter.value_colour,
+                                                            scale = self.st_highscore.value_size,
+                                                            text = self.st_highscore.prefix..self.st_highscore.value,
+                                                            colour = self.st_highscore.value_colour,
                                                         },
                                                     },
                                                 },
@@ -712,107 +612,126 @@ end
 -- generates the alignment for the counter
 -- aligns it to the description pop up
 
-function Card:generate_st_counter_align()
-    local offset_below = (self.children.buy_button or (self.area and self.area.config.view_deck) or (self.area and self.area.config.type == 'shop')) and true or
-                         (self.T.y < G.CARD_H*0.8) and true
-    self.st_counter.config = {
+function Card:generate_st_highscore_align()
+    self.st_highscore.config = {
         major = self.children.h_popup,
         parent = self.children.h_popup,
         xy_bond = 'Strong',
         r_bond = 'Weak',
         wh_bond = 'Weak',
         offset = {
-            x = 0,
-            y = offset_below and self.st_counter.offset or self.st_counter.offset * -1
+            x = self.st_highscore.offset,
+            y = 0,
         },  
-        type = offset_below and 'bm' or 'tm'
+        type = 'cr'
     }
+end
+
+-- update highscore
+
+function Card:update_st_highscore()
+    local joker = nil
+    for k, v in pairs(S.HIGHSCORES) do
+        if k == self.ability.name then
+            joker = k
+        end
+    end
+    if joker then
+        if S.HIGHSCORES[joker] < self.st_highscore.value then
+            S.HIGHSCORES[joker] = self.st_highscore.value
+        end
+    else
+        S.HIGHSCORES[self.ability.name] = self.st_highscore.value
+    end
+    if S.SETTINGS.modules.highscore.features.highscore_counter.enabled then
+        S:write_file('highscores')
+    end
 end
 
 -- generates the ui box for the counter using the definition and alignment
 
-function Card:generate_st_counter_UI()
-    self.st_counter.UI = UIBox{
-        definition = self.st_counter.definition,
-        config = self.st_counter.config,
+function Card:generate_st_highscore_UI()
+    self.st_highscore.UI = UIBox{
+        definition = self.st_highscore.definition,
+        config = self.st_highscore.config,
     }
-end
-
--- function for showing the updated counter after a change in value, not needed as of now
-
-function Card:update_st_counter()
-    self:generate_st_counter_defintion()
-    self:generate_st_counter_align()
-    
-    self:generate_st_counter_UI()
-    if self.st_counter.shown then
-        self:show_st_counter()
-    end
 end
 
 -- function for displaying the counter, generates all the ui and 
 -- sets it as a child of the description pop up
 
-function Card:show_st_counter()
-    if self.st_counter then
-        local show_counter = false
-        if (self.st_counter._type == 'money gen' or self.st_counter._type == 'value gen') and
-        S.SETTINGS.modules.stattrack.features.joker_tracking.groups['money_generators'] then
-            show_counter = true
-        elseif (self.st_counter._type == 'card gen' or self.st_counter._type == 'cards added' or self.st_counter._type == 'joker gen') and
-        S.SETTINGS.modules.stattrack.features.joker_tracking.groups['card_generators'] then
-            show_counter = true
-        elseif self.st_counter._type == '+ chips' and
-        S.SETTINGS.modules.stattrack.features.joker_tracking.groups['chips_plus'] then
-            show_counter = true
-        elseif self.st_counter._type == '+ mult' and
-        S.SETTINGS.modules.stattrack.features.joker_tracking.groups['mult_plus'] then
-            show_counter = true
-        elseif self.st_counter._type == 'x mult' and
-        S.SETTINGS.modules.stattrack.features.joker_tracking.groups['mult_mult'] then
-            show_counter = true
-        elseif self.st_counter and S.SETTINGS.modules.stattrack.features.joker_tracking.groups['miscellaneous'] then
-            show_counter = true
+function Card:show_st_highscore()
+    if not S.SETTINGS.modules.highscore.enabled then return end
+    local show_counter = false
+    if (self.st_highscore._type == 'money gen' or self.st_highscore._type == 'value gen') and
+    S.SETTINGS.modules.highscore.features.highscore_counter.groups['money_generators'] then
+        show_counter = true
+    elseif (self.st_highscore._type == 'card gen' or self.st_highscore._type == 'cards added' or self.st_highscore._type == 'joker gen') and
+    S.SETTINGS.modules.highscore.features.highscore_counter.groups['card_generators'] then
+        show_counter = true
+    elseif self.st_highscore._type == '+ chips scale' and
+    S.SETTINGS.modules.highscore.features.highscore_counter.groups['plus_chips_scale'] then
+        show_counter = true
+    elseif self.st_highscore._type == '+ mult scale' and
+    S.SETTINGS.modules.highscore.features.highscore_counter.groups['plus_mult_scale'] then
+        show_counter = true
+    elseif self.st_highscore._type == 'x mult scale' and
+    S.SETTINGS.modules.highscore.features.highscore_counter.groups['x_mult_scale'] then
+        show_counter = true
+    elseif self.st_highscore._type == 'activations' and
+    S.SETTINGS.modules.highscore.features.highscore_counter.groups['activations'] then
+        show_counter = true
+    elseif self.st_highscore._type == 'retriggers' and
+    S.SETTINGS.modules.highscore.features.highscore_counter.groups['retriggers'] then
+        show_counter = true
+    elseif self.st_highscore and S.SETTINGS.modules.highscore.features.highscore_counter.groups['miscellaneous'] then
+        show_counter = true
+    end
+    if show_counter and inCollection(self) then
+        self.st_hs_ref_table = self.st_highscore
+        if S.HIGHSCORES[self.ability.name] then
+            self.st_highscore.value = S.HIGHSCORES[self.ability.name]
         end
-        if show_counter then
-            self:generate_st_counter_defintion()
-            self:generate_st_counter_align()
-            self:generate_st_counter_UI()
-            self.children.h_popup.children.st_counter = self.st_counter.UI
-        end
+        self:generate_st_highscore_defintion()
+        self:generate_st_highscore_align()
+        self:generate_st_highscore_UI()
+        self.children.h_popup.children.st_highscore = self.st_highscore.UI
+        self:init_st_highscore(self.st_hs_ref_table)
     end
 end
 
 -- function for hiding the counter, not needed as of now
 
-function Card:hide_st_counter()
-    if self.children.st_counter then
-        self.children.st_counter = nil
+function Card:hide_st_highscore()
+    if self.children.st_highscore then
+        self.children.st_highscore = nil
     end
 end
 
 -- function for increasing the counter value
 
-function Card:increment_st_counter(amt)
-    self.st_counter.value = self.st_counter.value + amt
+function Card:increment_st_highscore(amt)
+    self.st_highscore.value = self.st_highscore.value + amt
 end
 
 -- function for decreasing the counter value
   
-function Card:decrement_st_counter(amt)
-    self.st_counter.value = self.st_counter.value - amt
+function Card:decrement_st_highscore(amt)
+    self.st_highscore.value = self.st_highscore.value - amt
 end
 
 -- function for setting the counter value to 0
   
-function Card:reset_st_counter()
-    self.st_counter.value = 0
+function Card:reset_st_highscore()
+    self.st_highscore.value = 0
 end
 
 -- function for setting the counter value to a specific value
   
-function Card:set_st_counter(amt)
-    self.st_counter.value = amt
+function Card:set_st_highscore(amt)
+    if amt > self.st_highscore.value then
+        self.st_highscore.value = amt
+    end
 end
 
 -- function for setting the counter text, as of now only needed for obelisk
@@ -825,34 +744,34 @@ function Card:set_st_text(text)
             output_text = output_text..'/'
         end
     end
-    self.st_counter.value_text = output_text
-    self.st_counter.value_num = #text
+    self.st_highscore.value_text = output_text
+    self.st_highscore.value_num = #text
 end
 
 -- returns the counter value, not needed as of now
 
-function Card:get_st_counter_value()
-    return self.st_counter.value
+function Card:get_st_highscore_value()
+    return self.st_highscore.value
 end
 
 -- function for incrementing the counter of money generating jokers that give money
 -- at the end of the round
 
-function Card:end_st_counter_bonus()
-    if not self.st_counter then
-        self:init_st_counter(self.st_ref_table)
-        self.st_ref_table = self.st_counter
+function Card:end_st_highscore_bonus()
+    if not self.st_highscore then
+        self:init_st_highscore(self.st_hs_ref_table)
+        self.st_hs_ref_table = self.st_highscore
     end
     if self.debuff then return end
     if self.ability.set == "Joker" then
         if self.ability.name == 'Golden Joker' then
-            self:increment_st_counter(self.ability.extra)
+            self:increment_st_highscore(self.ability.extra)
         end
         if self.ability.name == 'Cloud 9' and self.ability.nine_tally and self.ability.nine_tally > 0 then
-            self:increment_st_counter(self.ability.extra*(self.ability.nine_tally))
+            self:increment_st_highscore(self.ability.extra*(self.ability.nine_tally))
         end
         if self.ability.name == 'Rocket' then
-            self:increment_st_counter(self.ability.extra.dollars)
+            self:increment_st_highscore(self.ability.extra.dollars)
         end
         if self.ability.name == 'Satellite' then 
             local planets_used = 0
@@ -860,10 +779,10 @@ function Card:end_st_counter_bonus()
                 if v.set == 'Planet' then planets_used = planets_used + 1 end
             end
             if planets_used == 0 then return end
-            self:increment_st_counter(self.ability.extra*planets_used)
+            self:increment_st_highscore(self.ability.extra*planets_used)
         end
         if self.ability.name == 'Delayed Gratification' and G.GAME.current_round.discards_used == 0 and G.GAME.current_round.discards_left > 0 then
-            self:increment_st_counter(G.GAME.current_round.discards_left*self.ability.extra)
+            self:increment_st_highscore(G.GAME.current_round.discards_left*self.ability.extra)
         end
     end
 end
@@ -871,60 +790,60 @@ end
 -- mostly taken from the source code, increments counters when necessary
 -- i took this route over using a bunch of patches because i hate patches
 
-function Card:calculate_st_counter(context)
-    if not self.st_counter then
-        self:init_st_counter(self.st_ref_table)
-        self.st_ref_table = self.st_counter
+function Card:calculate_st_highscore(context)
+    if not self.st_highscore then
+        self:init_st_highscore(self.st_hs_ref_table)
+        self.st_hs_ref_table = self.st_highscore
     end
     if context.ending_shop then
         if self.ability.name == 'Perkeo' then
             if G.consumeables.cards[1] then
-                self:increment_st_counter(1)
+                self:increment_st_highscore(1)
             end
         end
     elseif context.first_hand_drawn then
         if self.ability.name == 'Certificate' then
-            self:increment_st_counter(1)
+            self:increment_st_highscore(1)
         end
     elseif context.setting_blind and not self.getting_sliced then
         if self.ability.name == 'Chicot' and not context.blueprint
         and context.blind.boss and not self.getting_sliced then
-            self:increment_st_counter(1)
+            self:increment_st_highscore(1)
         end
         if self.ability.name == 'Burglar' and not (context.blueprint_card or self).getting_sliced then
-            self:increment_st_counter(self.ability.extra)
+            self:increment_st_highscore(self.ability.extra)
         end
         if self.ability.name == 'Cartomancer' and not (context.blueprint_card or self).getting_sliced and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-            self:increment_st_counter(1)
+            self:increment_st_highscore(1)
         end
         if self.ability.name == 'Marble Joker' and not (context.blueprint_card or self).getting_sliced  then
-            self:increment_st_counter(1)
+            self:increment_st_highscore(1)
         end
     elseif context.destroying_card and not context.blueprint then
         if self.ability.name == 'Sixth Sense' and #context.full_hand == 1 and context.full_hand[1]:get_id() == 6 and G.GAME.current_round.hands_played == 0 then
             if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-                self:increment_st_counter(1)
+                self:increment_st_highscore(1)
             end
         end
     elseif context.debuffed_hand then 
         if self.ability.name == 'Matador' then
             if G.GAME.blind.triggered then 
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
         end
     elseif context.pre_discard then
         if self.ability.name == 'Burnt Joker' and G.GAME.current_round.discards_used <= 0 and not context.hook then
-            self:increment_st_counter(1)
+            self:increment_st_highscore(1)
         end
     elseif context.discard then
         if self.ability.name == 'Trading Card' and not context.blueprint and 
         G.GAME.current_round.discards_used <= 0 and #context.full_hand == 1 then
-            self:increment_st_counter(1)
+            self:increment_st_highscore(1)
         end
         if self.ability.name == 'Mail-In Rebate' and
         not context.other_card.debuff and
         context.other_card:get_id() == G.GAME.current_round.mail_card.id then
-            self:increment_st_counter(self.ability.extra)
+            self:increment_st_highscore(self.ability.extra)
         end
         if self.ability.name == 'Faceless Joker' and context.other_card == context.full_hand[#context.full_hand] then
             local face_cards = 0
@@ -934,7 +853,7 @@ function Card:calculate_st_counter(context)
                 end
             end
             if face_cards >= self.ability.extra.faces then
-                self:increment_st_counter(self.ability.extra.dollars)
+                self:increment_st_highscore(self.ability.extra.dollars)
             end
         end
     elseif context.end_of_round then
@@ -942,14 +861,14 @@ function Card:calculate_st_counter(context)
             if context.cardarea == G.hand then
                 if self.ability.name == 'Mime' and
                 (next(context.card_effects[1]) or #context.card_effects > 1) then
-                    self:increment_st_counter(self.ability.extra)
+                    self:increment_st_highscore(self.ability.extra)
                 end
             end
         end
     elseif context.individual then
         if context.cardarea == G.play then
             if self.ability.name == 'Hiker' then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
             if self.ability.name == 'Photograph' then
                 local first_face = nil
@@ -960,33 +879,33 @@ function Card:calculate_st_counter(context)
                     end
                 end
                 if context.other_card == first_face then
-                    self:increment_st_counter(self.ability.extra)
+                    self:increment_st_highscore(1)
                 end
             end
             if self.ability.name == 'The Idol' and
             context.other_card:get_id() == G.GAME.current_round.idol_card.id and 
             context.other_card:is_suit(G.GAME.current_round.idol_card.suit) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Scary Face' and
             (context.other_card:is_face()) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Smiley Face' and (
             context.other_card:is_face()) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Golden Ticket' and
             context.other_card.ability.name == 'Gold Card' then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
             if self.ability.name == 'Scholar' and
             context.other_card:get_id() == 14 then
-                self:increment_st_counter(1)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Walkie Talkie' and
             (context.other_card:get_id() == 10 or context.other_card:get_id() == 4) then
-                self:increment_st_counter(1)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Fibonacci' and (
             context.other_card:get_id() == 2 or 
@@ -994,57 +913,57 @@ function Card:calculate_st_counter(context)
             context.other_card:get_id() == 5 or 
             context.other_card:get_id() == 8 or 
             context.other_card:get_id() == 14) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Even Steven' and
             context.other_card:get_id() <= 10 and 
             context.other_card:get_id() >= 0 and
             context.other_card:get_id()%2 == 0 then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Odd Todd' and
             ((context.other_card:get_id() <= 10 and 
             context.other_card:get_id() >= 0 and
             context.other_card:get_id()%2 == 1) or
             (context.other_card:get_id() == 14)) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.effect == 'Suit Mult' and
             context.other_card:is_suit(self.ability.extra.suit) then
-                self:increment_st_counter(self.ability.extra.s_mult)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Rough Gem' and
             context.other_card:is_suit("Diamonds") then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
             if self.ability.name == 'Onyx Agate' and
             context.other_card:is_suit("Clubs") then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Arrowhead' and
             context.other_card:is_suit("Spades") then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Ancient Joker' and
             context.other_card:is_suit(G.GAME.current_round.ancient_card.suit) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Triboulet' and
             (context.other_card:get_id() == 12 or context.other_card:get_id() == 13) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(1)
             end
         end
         if context.cardarea == G.hand then
             if self.ability.name == 'Shoot the Moon' and
             context.other_card:get_id() == 12 then
                 if not context.other_card.debuff then
-                    self:increment_st_counter(13)
+                    self:increment_st_highscore(1)
                 end
             end
             if self.ability.name == 'Baron' and
             context.other_card:get_id() == 13 then
                 if not context.other_card.debuff then
-                    self:increment_st_counter(self.ability.extra)
+                    self:increment_st_highscore(1)
                 end
             end
             if self.ability.name == 'Raised Fist' then
@@ -1059,7 +978,7 @@ function Card:calculate_st_counter(context)
                 end
                 if raised_card == context.other_card then 
                     if not context.other_card.debuff then
-                        self:increment_st_counter(2*temp_Mult)
+                        self:increment_st_highscore(1)
                     end
                 end
             end
@@ -1068,35 +987,35 @@ function Card:calculate_st_counter(context)
         if context.cardarea == G.play then
             if self.ability.name == 'Sock and Buskin' and (
             context.other_card:is_face()) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
             if self.ability.name == 'Hanging Chad' and (
             context.other_card == context.scoring_hand[1]) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
             if self.ability.name == 'Dusk' and G.GAME.current_round.hands_left == 0 then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
             if self.ability.name == 'Seltzer' then
-                self:increment_st_counter(1)
+                self:increment_st_highscore(1)
             end
             if self.ability.name == 'Hack' and (
             context.other_card:get_id() == 2 or 
             context.other_card:get_id() == 3 or 
             context.other_card:get_id() == 4 or 
             context.other_card:get_id() == 5) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
         end
         if context.cardarea == G.hand then
             if self.ability.name == 'Mime' and
             (next(context.card_effects[1]) or #context.card_effects > 1) then
-                self:increment_st_counter(self.ability.extra)
+                self:increment_st_highscore(self.ability.extra)
             end
         end
     elseif context.other_joker then
         if self.ability.name == 'Baseball Card' and context.other_joker.config.center.rarity == 2 and self ~= context.other_joker then
-            self:increment_st_counter(self.ability.extra)
+            self:increment_st_highscore(1)
         end
     else
         if context.cardarea == G.jokers then
@@ -1109,50 +1028,40 @@ function Card:calculate_st_counter(context)
                         end
                     end
                     if #faces > 0 then 
-                        self:increment_st_counter(#faces)
+                        self:increment_st_highscore(#faces)
                     end
                 end
                 if self.ability.name == 'To Do List' and context.scoring_name == self.ability.to_do_poker_hand then
-                    self:increment_st_counter(self.ability.extra.dollars)
+                    self:increment_st_highscore(self.ability.extra.dollars)
                 end
                 if self.ability.name == 'DNA' and G.GAME.current_round.hands_played == 0 then
                     if #context.full_hand == 1 then
-                        self:increment_st_counter(1)
+                        self:increment_st_highscore(1)
                     end
-                end
-                if self.ability.name == 'Obelisk' and not context.blueprint then
-                    local most_played_num = 0
-                    local most_played_hands = {}
-                    for k, v in pairs(G.GAME.hands) do
-                        if v.played >= most_played_num then
-                            most_played_num = v.played
-                        end
-                    end
-                    for k, v in pairs(G.GAME.hands) do
-                        if v.played >= most_played_num then
-                            most_played_hands[#most_played_hands + 1] = k
-                        end
-                    end
-                    self:set_st_text(most_played_hands)
                 end
                 if self.ability.name == 'Loyalty Card' then
                     local loyalty_remaining = (self.ability.extra.every-1-(G.GAME.hands_played - self.ability.hands_played_at_create))%(self.ability.extra.every+1)
                     if loyalty_remaining == self.ability.extra.every then
-                        self:increment_st_counter(self.ability.extra.Xmult)
+                        self:increment_st_highscore(1)
                     end
                 end
-                if self.ability.name ~= 'Seeing Double' and self.ability.name ~= 'Obelisk' and self.ability.name ~= 'Lucky Cat' and
-                self.ability.x_mult > 1 and (self.ability.type == '' or next(context.poker_hands[self.ability.type])) then
-                    self:increment_st_counter(self.ability.x_mult)
+                if self.ability.name ~= 'Seeing Double' and self.ability.name ~= 'Lucky Cat' then
+                    -- duo trio and the others
+                    if self.ability.x_mult > 1 and next(context.poker_hands[self.ability.type]) then
+                        self:increment_st_highscore(1)
+                    -- vamp, yorick, scaling x mult
+                    elseif self.ability.x_mult > 1 and self.ability.type == '' then
+                        self:set_st_highscore(self.ability.x_mult)
+                    end
                 end
                 if self.ability.t_mult > 0 and next(context.poker_hands[self.ability.type]) then
-                    self:increment_st_counter(self.ability.t_mult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.t_chips > 0 and next(context.poker_hands[self.ability.type]) then
-                    self:increment_st_counter(self.ability.t_chips)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Half Joker' and #context.full_hand <= self.ability.extra.size then
-                    self:increment_st_counter(self.ability.extra.mult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Abstract Joker' then
                     local x = 0
@@ -1161,26 +1070,26 @@ function Card:calculate_st_counter(context)
                             x = x + 1
                         end
                     end
-                    self:increment_st_counter(x*self.ability.extra)
+                    self:set_st_highscore(x*self.ability.extra)
                 end
                 if self.ability.name == 'Acrobat' and G.GAME.current_round.hands_left == 0 then
-                    self:increment_st_counter(self.ability.extra)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Mystic Summit' and G.GAME.current_round.discards_left == self.ability.extra.d_remaining then
-                    self:increment_st_counter(self.ability.extra.mult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Banner' and G.GAME.current_round.discards_left > 0 then
-                    self:increment_st_counter(G.GAME.current_round.discards_left*self.ability.extra)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Stuntman' then
-                    self:increment_st_counter(self.ability.extra.chip_mod)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Supernova' then
-                    self:increment_st_counter(G.GAME.hands[context.scoring_name].played)
+                    self:set_st_highscore(G.GAME.hands[context.scoring_name].played)
                 end
                 if self.ability.name == 'Vagabond' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                     if G.GAME.dollars <= self.ability.extra then
-                        self:increment_st_counter(1)
+                        self:increment_st_highscore(1)
                     end
                 end
                 if self.ability.name == 'Superposition' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
@@ -1189,12 +1098,12 @@ function Card:calculate_st_counter(context)
                         if context.scoring_hand[i]:get_id() == 14 then aces = aces + 1 end
                     end
                     if aces >= 1 and next(context.poker_hands["Straight"]) then
-                        self:increment_st_counter(1)
+                        self:increment_st_highscore(1)
                     end
                 end
                 if self.ability.name == 'Seance' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
                     if next(context.poker_hands[self.ability.extra.poker_hand]) then
-                        self:increment_st_counter(1)
+                        self:increment_st_highscore(1)
                     end
                 end
                 if self.ability.name == 'Flower Pot' then
@@ -1224,7 +1133,7 @@ function Card:calculate_st_counter(context)
                     suits["Diamonds"] > 0 and
                     suits["Spades"] > 0 and
                     suits["Clubs"] > 0 then
-                        self:increment_st_counter(self.ability.extra)
+                        self:increment_st_highscore(1)
                     end
                 end
                 if self.ability.name == 'Seeing Double' then
@@ -1254,39 +1163,39 @@ function Card:calculate_st_counter(context)
                     suits["Diamonds"] > 0 or
                     suits["Spades"] > 0) and
                     suits["Clubs"] > 0 then
-                        self:increment_st_counter(self.ability.extra)
+                        self:increment_st_highscore(1)
                     end
                 end
                 if self.ability.name == 'Castle' and (self.ability.extra.chips > 0) then
-                    self:increment_st_counter(self.ability.extra.chips)
+                    self:set_st_highscore(self.ability.extra.chips)
                 end
                 if self.ability.name == 'Blue Joker' and #G.deck.cards > 0 then
-                    self:increment_st_counter(self.ability.extra*#G.deck.cards)
+                    self:set_st_highscore(self.ability.extra*#G.deck.cards)
                 end
                 if self.ability.name == 'Erosion' and (G.GAME.starting_deck_size - #G.playing_cards) > 0 then
-                    self:increment_st_counter(self.ability.extra*(G.GAME.starting_deck_size - #G.playing_cards))
+                    self:set_st_highscore(self.ability.extra*(G.GAME.starting_deck_size - #G.playing_cards))
                 end
                 if self.ability.name == 'Square Joker' then
-                    self:increment_st_counter(self.ability.extra.chips)
+                    self:set_st_highscore(self.ability.extra.chips)
                 end
                 if self.ability.name == 'Runner' then
-                    self:increment_st_counter(self.ability.extra.chips)
+                    self:set_st_highscore(self.ability.extra.chips)
                 end
                 if self.ability.name == 'Ice Cream' then
-                    self:increment_st_counter(self.ability.extra.chips)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Stone Joker' and self.ability.stone_tally > 0 then
-                    self:increment_st_counter(self.ability.extra*self.ability.stone_tally)
+                    self:set_st_highscore(self.ability.extra*self.ability.stone_tally)
                 end
                 if self.ability.name == 'Steel Joker' and self.ability.steel_tally > 0 then
-                    self:increment_st_counter(1 + self.ability.extra*self.ability.steel_tally)
+                    self:set_st_highscore(1 + self.ability.extra*self.ability.steel_tally)
                 end
                 if self.ability.name == 'Bull' and (G.GAME.dollars + (G.GAME.dollar_buffer or 0)) > 0 then
-                    self:increment_st_counter(self.ability.extra*math.max(0,(G.GAME.dollars + (G.GAME.dollar_buffer or 0))))
+                    self:set_st_highscore(self.ability.extra*math.max(0,(G.GAME.dollars + (G.GAME.dollar_buffer or 0))))
                 end
                 if self.ability.name == "Driver's License" then
                     if (self.ability.driver_tally or 0) >= 16 then 
-                        self:increment_st_counter(self.ability.extra)
+                        self:increment_st_highscore(1)
                     end
                 end
                 if self.ability.name == "Blackboard" then
@@ -1298,50 +1207,50 @@ function Card:calculate_st_counter(context)
                         end
                     end
                     if black_suits == all_cards then 
-                        self:increment_st_counter(self.ability.extra)
+                        self:increment_st_highscore(1)
                     end
                 end
                 if self.ability.name == 'Swashbuckler' and self.ability.mult > 0 then
-                    self:increment_st_counter(self.ability.mult)
+                    self:set_st_highscore(self.ability.mult)
                 end
                 if self.ability.name == 'Joker' then
-                    self:increment_st_counter(self.ability.mult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Spare Trousers' and self.ability.mult > 0 then
-                    self:increment_st_counter(self.ability.mult)
+                    self:set_st_highscore(self.ability.mult)
                 end
                 if self.ability.name == 'Ride the Bus' and self.ability.mult > 0 then
-                    self:increment_st_counter(self.ability.mult)
+                    self:set_st_highscore(self.ability.mult)
                 end
                 if self.ability.name == 'Flash Card' and self.ability.mult > 0 then
-                    self:increment_st_counter(self.ability.mult)
+                    self:set_st_highscore(self.ability.mult)
                 end
                 if self.ability.name == 'Popcorn' and self.ability.mult > 0 then
-                    self:increment_st_counter(self.ability.mult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Green Joker' and self.ability.mult > 0 then
-                    self:increment_st_counter(self.ability.mult)
+                    self:set_st_highscore(self.ability.mult)
                 end
                 if self.ability.name == 'Fortune Teller' and G.GAME.consumeable_usage_total and G.GAME.consumeable_usage_total.tarot > 0 then
-                    self:increment_st_counter(G.GAME.consumeable_usage_total.tarot)
+                    self:set_st_highscore(G.GAME.consumeable_usage_total.tarot)
                 end
                 if self.ability.name == 'Gros Michel' then
-                    self:increment_st_counter(self.ability.extra.mult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Cavendish' then
-                    self:increment_st_counter(self.ability.extra.Xmult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Red Card' and self.ability.mult > 0 then
-                    self:increment_st_counter(self.ability.mult)
+                    self:set_st_highscore(self.ability.mult)
                 end
                 if self.ability.name == 'Card Sharp' and G.GAME.hands[context.scoring_name] and G.GAME.hands[context.scoring_name].played_this_round > 1 then
-                    self:increment_st_counter(self.ability.extra.Xmult)
+                    self:increment_st_highscore(1)
                 end
                 if self.ability.name == 'Bootstraps' and math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0))/self.ability.extra.dollars) >= 1 then 
-                    self:increment_st_counter(self.ability.extra.mult*math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0))/self.ability.extra.dollars))
+                    self:set_st_highscore(self.ability.extra.mult*math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0))/self.ability.extra.dollars))
                 end
                 if self.ability.name == 'Caino' and self.ability.caino_xmult > 1 then 
-                    self:increment_st_counter(self.ability.caino_xmult)
+                    self:set_st_highscore(self.ability.caino_xmult)
                 end
             end
         end

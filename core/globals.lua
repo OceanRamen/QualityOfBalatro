@@ -4,6 +4,7 @@ VERSION = "1.0.0b"
 VERSION = VERSION .. "-DEVELOPMENT"
 
 function Saturn:set_globals()
+  _RELEASE_MODE = false
   self.VERSION = VERSION
   self.MOD_PATH = lovely.mod_dir .. "/Saturn/"
 
@@ -12,40 +13,69 @@ function Saturn:set_globals()
   self.SETTINGS = {
     modules = {
       stattrack = {
-        enabled = true,
         features = {
           joker_tracking = {
-            enabled = true, 
             groups = {
-              money_generators = true, 
-              card_generators = true, 
+              mult_plus = false,
+              money_generators = true,
+              card_generators = true,
               miscellaneous = true,
-              chips_plus = false, 
-              mult_plus = false, 
               mult_mult = false,
-              compact_view = false,
+              chips_plus = false,
             },
+            enabled = true,
           },
         },
+        enabled = true,
+      },
+      preferences = {
+        remove_animations = {
+          enabled = false,
+        },
+        compact_view = {
+          enabled = false,
+        },
+      },
+      highscore = {
+        features = {
+          highscore_counter = {
+            groups = {
+              activations = false,
+              x_mult_scale = true,
+              money_generators = true,
+              card_generators = true,
+              miscellaneous = true,
+              plus_mult_scale = true,
+              plus_chips_scale = true,
+              retriggers = false,
+            },
+            counters = {},
+          }
+        },
+        enabled = true,
       },
       deckviewer_plus = {
-        enabled = true,
         features = {
           hide_played_cards = true,
         },
+        enabled = true,
       },
       challenger_plus = {
-        enabled = true,
         features = {
-          retry_button = true,
           mass_use_button = true,
-        }
-      },
-      remove_animations = {
+          retry_button = true,
+        },
         enabled = true,
-      }
-    }
+      },
+    },
   }
+
+  -- stuff for ui
+  self.card_display = {}
+  self.current_page = 0
+  self.current_page_text = {}
+
+  self.HIGHSCORES = {}
 
   self.UI = {
     colour_scheme = {},
