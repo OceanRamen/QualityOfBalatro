@@ -1,0 +1,1 @@
+return {["Lusty Joker"]=1,["Gluttonous Joker"]=1,["Devious Joker"]=0,["Mad Joker"]=0,["Crazy Joker"]=0,["Wrathful Joker"]=2,["Jolly Joker"]=0,["Wily Joker"]=0,["Greedy Joker"]=1,["Clever Joker"]=0,["Zany Joker"]=0,["Joker"]=1,["Droll Joker"]=0,}

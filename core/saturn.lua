@@ -10,7 +10,8 @@ function Saturn:init()
 end
 
 function Saturn:start_up()
-  self:fetch_settings()
+  self:fetch_file('settings')
+  self:fetch_file('highscores')
 end
 
 function Saturn:update(dt)
@@ -52,8 +53,10 @@ function Saturn:update(dt)
   end
 end
 
-function Saturn:fetch_settings()
-  if not nativefs.getInfo(self.MOD_PATH .. "user_settings.lua") then
+function Saturn:fetch_file(filename)
+  local upper = filename:upper()
+  local lower = filename:lower()
+  if not nativefs.getInfo(self.MOD_PATH .. 'user/user_'..lower..'.lua') then
     local function tableToString(tbl, indent)
       indent = indent or 0
       local result = "{\n"
@@ -74,18 +77,20 @@ function Saturn:fetch_settings()
       result = result .. string.rep("  ", indent) .. "}"
       return result
     end
-    local settings_default = "return " .. tableToString(self.SETTINGS)
-    local success, err = nativefs.write(self.MOD_PATH .. "user_settings.lua", settings_default)
+    local file_default = "return " .. tableToString(self[upper])
+    local success, err = nativefs.write(self.MOD_PATH .. 'user/user_'..lower..'.lua', file_default)
     if not success then
       return error(err)
     end
   end
-  local user_settings = STR_UNPACK(nativefs.read(self.MOD_PATH .. "user_settings.lua"))
-  if user_settings ~= nil then
-    self.SETTINGS = user_settings
+  local user_file = STR_UNPACK(nativefs.read(self.MOD_PATH .. 'user/user_'..lower..'.lua'))
+  if user_file ~= nil then
+    self[upper] = user_file
   end
 end
 
-function Saturn:write_settings()
-  nativefs.write(self.MOD_PATH .. "user_settings.lua", STR_PACK(self.SETTINGS))
+function Saturn:write_file(filename)
+  local upper = filename:upper()
+  local lower = filename:lower()
+  nativefs.write(self.MOD_PATH .. 'user/user_'..lower..'.lua', STR_PACK(self[upper]))
 end
