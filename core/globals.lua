@@ -27,6 +27,21 @@ function Saturn:set_globals()
             },
           },
         },
+<<<<<<< Updated upstream
+=======
+        enabled = true,
+      },
+      preferences = {
+        remove_animations = {
+          enabled = false,
+        },
+        compact_view = {
+          enabled = false,
+        },
+        show_stickers = {
+          enabled = false,
+        },
+>>>>>>> Stashed changes
       },
       deckviewer_plus = {
         enabled = true,

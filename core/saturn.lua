@@ -86,6 +86,18 @@ function Saturn:fetch_settings()
   end
 end
 
+<<<<<<< Updated upstream
 function Saturn:write_settings()
   nativefs.write(self.MOD_PATH .. "user_settings.lua", STR_PACK(self.SETTINGS))
 end
+=======
+function Saturn:write_file(filename)
+  local upper = filename:upper()
+  local lower = filename:lower()
+  nativefs.write(self.MOD_PATH .. 'user/user_'..lower..'.lua', STR_PACK(self[upper]))
+  -- update all counters when applying settings
+  -- useful for locked counters that are visibile
+  -- while turning on/off compact view
+  update_all_counters()
+end
+>>>>>>> Stashed changes

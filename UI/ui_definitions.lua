@@ -49,22 +49,48 @@ local function saturn_get_settings_tab(_tab)
     }
   end
 
+<<<<<<< Updated upstream
   return {
     n = G.UIT.ROOT,
     config = { align = "cm", padding = 0.05, colour = G.C.CLEAR, minh = 5, minw = 5 },
     nodes = {},
+=======
+-- features tab
+function G.FUNCS.saturn_features(e)
+  G.SETTINGS.paused = true
+  chosen_tab = 'saturn_features'
+
+  local ref_table = S.TEMP_SETTINGS.modules
+  local _buttons = {
+    {label = 'StatTracker', toggle_ref = ref_table.stattrack, ref_value = 'enabled', button_ref = 'config_stattracker',},
+    {label = 'DeckViewer+', toggle_ref = ref_table.deckviewer_plus, ref_value = 'enabled', button_ref = 'config_deckviewer',},
+    {label = 'Challenger+', toggle_ref = ref_table.challenger_plus, ref_value = 'enabled', button_ref = 'config_challenger',},
+>>>>>>> Stashed changes
   }
 end
 
 function G.FUNCS.saturn_preferences(e)
   G.SETTINGS.paused = true
 
+<<<<<<< Updated upstream
   local _tabs = {}
   _tabs[#_tabs + 1] = {
     label = "Features",
     chosen = true,
     tab_definition_function = saturn_get_settings_tab,
     tab_definition_function_args = "Features",
+=======
+  local ref_table = S.TEMP_SETTINGS.modules.preferences
+  local _buttons = {
+    {label = 'Animation Skip', toggle_ref = ref_table.remove_animations, ref_value = 'enabled',},
+    {label = 'Compact View', toggle_ref = ref_table.compact_view, ref_value = 'enabled',},
+    {label = 'Show Stickers', toggle_ref = ref_table.show_stickers, ref_value = 'enabled',},
+  }
+  local _tabs = {
+    {label = "Features", button_ref = 'saturn_features'},
+    {label = 'Preferences',},
+    {label = 'Stats', button_ref = 'saturn_stats',},
+>>>>>>> Stashed changes
   }
 
   local t = s_create_generic_options({
@@ -369,6 +395,10 @@ function G.FUNCS.config_stattracker(e)
   })
 end
 
+<<<<<<< Updated upstream
+=======
+-- deckviewer config
+>>>>>>> Stashed changes
 function G.FUNCS.config_deckviewer(e)
   G.SETTINGS.paused = true
   local ref_table = S.TEMP_SETTINGS.modules.deckviewer_plus.features
@@ -451,10 +481,88 @@ function consume_cards(cards)
   local area = G.STATE
   local to_consume = {}
 
+<<<<<<< Updated upstream
   -- First pass: Collect cards to be consumed
   for k, v in pairs(cards) do
     if v:can_use_consumeable() then
       table.insert(to_consume, v)
+=======
+  local card_display = {_type = 'Tarot', col = 5, row = 2,}
+
+  G.FUNCS.overlay_menu({
+    definition = s_create_options({
+      back_func = "saturn_stats",
+      title = 'Click on a Card to view Stats',
+      nodes = s_create_card_display(card_display),
+    })
+  })
+end
+
+-- planet stats
+function G.FUNCS.view_planets(e)
+  G.SETTINGS.paused = true
+
+  local card_display = {_type = 'Planet', col = 5, row = 2,}
+
+  G.FUNCS.overlay_menu({
+    definition = s_create_options({
+      back_func = "saturn_stats",
+      title = 'Click on a Card to view Stats',
+      nodes = s_create_card_display(card_display),
+    })
+  })
+end
+
+-- spectral stats
+function G.FUNCS.view_spectrals(e)
+  G.SETTINGS.paused = true
+
+  local card_display = {_type = 'Spectral', col = 5, row = 2,}
+
+  G.FUNCS.overlay_menu({
+    definition = s_create_options({
+      back_func = 'saturn_stats',
+      title = 'Click on a Card to view Stats',
+      nodes = s_create_card_display(card_display),
+    })
+  })
+end
+
+-- individual card stats view buttons
+
+-- specific card stats
+function G.FUNCS.card_stats(e)
+  G.SETTINGS.paused = true
+
+  G.FUNCS.overlay_menu({
+    definition = s_create_options({
+      back_func = 'view_'..e.ability.set:lower()..'s',
+      title = localize({type = 'name_text', set = e.ability.set, key = e.config.center.key}),
+      nodes = s_create_stats_page(e)
+    })
+  })
+end
+
+-- other button callbacks
+
+-- page cycling for the stat card areas
+G.FUNCS.statview_page_cycle = function(e)
+  args = e.config.ref_table or {}
+  args._type = args._type or 'Joker'
+  args.col = args.col or 5
+  args.row = args.row or 2
+  args.dir = args.dir or 1
+  local cards_per_page = args.col*args.row
+  local current_center = 0
+
+  for j = 1, args.row do
+    for i = args.col, 1, -1 do
+      local c = S.card_display[j]:remove_card(S.card_display[j].cards[i])
+      if c then
+        c:remove()
+        c = nil
+      end
+>>>>>>> Stashed changes
     end
   end
 

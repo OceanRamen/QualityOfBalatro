@@ -145,7 +145,7 @@ target = "card.lua"
 pattern = "if self.children.use_button and self.highlighted then self.children.use_button:draw() end"
 position = "before"
 payload = """
-if self.children.mass_use_button and self.highlighted then
+if false then --self.children.mass_use_button and self.highlighted and S.SETTINGS.modules.challenger_plus.features.mass_use_button then
   self.children.mass_use_button:draw()
 end
 """

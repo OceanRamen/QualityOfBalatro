@@ -180,6 +180,7 @@ function s_create_tabs(args)
       focus_args = { type = "none" },
     })
   end
+<<<<<<< Updated upstream
 
   local t = {
     n = G.UIT.R,
@@ -202,6 +203,517 @@ function s_create_tabs(args)
                 orientation = "cm",
                 scale = 0.7,
                 offset = { x = -0.1, y = 0 },
+=======
+  return tab_buttons
+end
+
+function s_create_card_display(args)
+  args = args or {}
+  args._type = args._type or 'Joker'
+  args.col = args.col or 5
+  args.row = args.row or 2
+  args.specific_center = args.specific_center or nil
+  local deck_tables = {}
+  local cards_per_page = args.col*args.row
+  local current_center = 0
+
+  S.card_display = {}
+
+  for i = 1, args.row do
+    S.card_display[i] = CardArea(
+      G.ROOM.T.x + 0.2*G.ROOM.T.w/args.row,G.ROOM.T.h,
+      args.col*G.CARD_W,
+      0.95*G.CARD_H, 
+      {card_limit = args.col, type = 'title', highlight_limit = 0, collection = false})
+    table.insert(deck_tables, 
+    {n=G.UIT.R, config={align = "cm", padding = 0.07, no_fill = true}, nodes={
+      {n=G.UIT.O, config={colour = G.C.CLEAR, object = S.card_display[i]}}
+    }}
+    )
+  end
+
+  if args.specific_center then
+    local center = args.specific_center
+    local card = Card(S.card_display[1].T.x + S.card_display[1].T.w/args.row, S.card_display[1].T.y, G.CARD_W, G.CARD_H, nil, center)
+    if args._type == 'Joker' then
+      card.sticker = get_joker_win_sticker(center)
+    end
+    S.card_display[1]:emplace(card)
+    return {
+      {n=G.UIT.R, config={align = "cm", r = 0.1, colour = G.C.CLEAR, emboss = 0.05}, nodes=deck_tables},
+    }
+  end
+
+  for i = 1, args.row do
+    for j = 1, args.col do
+      current_center = current_center + 1
+      local center = G.P_CENTER_POOLS[args._type][current_center + (S.current_page*(args.row*args.col))]
+      if not center then break end
+      local card = Card(S.card_display[i].T.x + S.card_display[i].T.w/args.row, S.card_display[i].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.empty, center)
+      card.s_stats = true
+      if args._type == 'Joker' then
+        card.sticker = get_joker_win_sticker(center)
+      end
+      S.card_display[i]:emplace(card)
+    end
+  end
+  
+  local t = {
+    {n=G.UIT.R, config={align = "cm", r = 0.1, colour = G.C.CLEAR, emboss = 0.05}, nodes=deck_tables}, 
+    {n=G.UIT.R, config={align = "cm",}, nodes = s_create_page_cycle_options({_type = args._type, colour = lighten(G.C.GREEN, 0.03), _type = args._type, row = args.row, col = args.col})}
+  }
+  return t
+end
+
+local card_click_ref = Card.click
+function Card:click() 
+  if self.s_stats then
+    G.FUNCS.card_stats(self)
+  end
+  card_click_ref(self)
+end
+
+function s_create_page_cycle_options(args)
+  args = args or {}
+  args._type = args._type or 'Joker'
+  args.col = args.col or 5
+  args.row = args.row or 2
+
+  S.current_page_text = (S.current_page+1)
+
+  local t = {
+    {
+      n = G.UIT.C,
+      config = {
+        align = 'cm',
+        colour = G.C.CLEAR,
+      },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = {
+            id = 'page_left',
+            button = 'statview_page_cycle',
+            ref_table = {
+              _type = args._type,
+              col = args.col,
+              row = args.row,
+              current = S.current_page,
+              dir = -1,
+            },
+            shadown = false,
+            minw = 0.66,
+            minh = 0.66,
+            hover = true,
+            align = "cm",
+            colour = args.colour or G.C.BLACK,
+            r = 0.1,
+            padding = 0.2,
+            outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+            outline = 1.15,
+          },
+          nodes = {
+            {
+              n = G.UIT.T,
+              config = {
+                text = '<',
+                scale = 0.4,
+                colour = G.C.UI.TEXT_LIGHT,
+                shadow = true,
+              },
+            },
+          }
+        }
+      }
+    },
+    { 
+      n = G.UIT.C,
+      config = {
+          align = "cm",
+          colour = G.C.CLEAR,
+          minw = 0.2,
+          r = 0.1,
+          padding = 0,
+      },
+    },
+    {
+      n = G.UIT.C,
+      config = {
+        align = 'cm',
+        colour = G.C.CLEAR,
+      },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = {
+              align = "cm",
+              colour = args.colour or G.C.BLACK,
+              minh = 0.66,
+              r = 0.1,
+              padding = 0.2,
+              minw = 2,
+              outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+              outline = 1.15,
+          },
+          nodes = {
+            { 
+              n = G.UIT.C,
+              config = {
+                  align = "cm",
+                  colour = G.C.CLEAR,
+                  minw = 0.5,
+                  r = 0.1,
+                  padding = 0,
+              },
+              nodes = {
+                {
+                  n = G.UIT.T,
+                  config = {
+                    id = 'current_page_num',
+                    ref_table = S,
+                    ref_value = 'current_page_text',
+                    scale = 0.4,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true,
+                  },
+                },
+              },
+            },
+            { 
+              n = G.UIT.C,
+              config = {
+                  align = "cm",
+                  colour = G.C.CLEAR,
+                  minw = 0.2,
+                  r = 0.1,
+                  padding = 0,
+              },
+              nodes = {
+                {
+                  n = G.UIT.T,
+                  config = {
+                    text = '/',
+                    scale = 0.4,
+                    minw = 0.5,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true,
+                  },
+                },
+              },
+            },
+            { 
+              n = G.UIT.C,
+              config = {
+                  align = "cm",
+                  colour = G.C.CLEAR,
+                  minw = 0.5,
+                  r = 0.1,
+                  padding = 0,
+              },
+              nodes = {
+                {
+                  n = G.UIT.T,
+                  config = {
+                    text = tostring(math.ceil((#G.P_CENTER_POOLS[args._type]/(args.row*args.col)))),
+                    scale = 0.4,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true,
+                  },
+                },
+              }
+            }
+          }
+        }
+      }
+    },
+    { 
+      n = G.UIT.C,
+      config = {
+          align = "cm",
+          colour = G.C.CLEAR,
+          minw = 0.2,
+          r = 0.1,
+          padding = 0,
+      },
+    },
+    {
+      n = G.UIT.C,
+      config = {
+        align = 'cm',
+        colour = G.C.CLEAR,
+      },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = {
+            id = 'page_right',
+            button = 'statview_page_cycle',
+            ref_table = {
+              _type = args._type,
+              col = args.col,
+              row = args.row,
+              current = S.current_page,
+              dir = 1,
+            },
+            shadown = false,
+            minw = 0.66,
+            minh = 0.66,
+            hover = true,
+            align = "cm",
+            colour = args.colour or G.C.BLACK,
+            r = 0.1,
+            padding = 0.2,
+            outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+            outline = 1.15,
+          },
+          nodes = {
+            {
+              n = G.UIT.T,
+              config = {
+                text = '>',
+                scale = 0.4,
+                colour = G.C.UI.TEXT_LIGHT,
+                shadow = true,
+              },
+            },
+          }
+        }
+      }
+    }
+  }
+  return t
+end
+
+function s_create_general_stats_page(args)
+
+  --   "c_cards_sold",
+  --   "c_hands_played",
+  --   "c_jokers_sold",
+  --   "c_vouchers_bought",
+  --   "c_planetarium_used",
+  --   "c_wins",
+  --   "c_shop_rerolls",
+  --   "c_cards_discarded",
+  --   "c_tarots_bought",
+  --   "c_cards_played",
+  --   "c_shop_dollars_spent",
+  --   "c_face_cards_played",
+  --   "c_planets_bought",
+  --   "c_single_hand_round_streak",
+  --   "c_tarot_reading_used",
+  --   "c_rounds",
+  --   "c_playing_cards_bought",
+  --   "c_dollars_earned",
+  --   "c_losses",
+  --   "c_round_interest_cap_streak",
+
+  local career_stats = G.PROFILES[G.SETTINGS.profile].career_stats
+
+  return nil
+end
+
+function s_create_stats_page(args)
+  if not args.ability then return end
+
+  local t = {
+    {
+      n = G.UIT.R,
+      config = {
+        align = 'cm',
+      },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = {
+            align = 'cm',
+            padding = 0.1,
+          },
+          nodes = s_create_card_display({_type = args.ability.set, col = 1, row = 1, specific_center = args.config.center})
+        },
+        (args.ability.set == 'Joker' and s_create_joker_stats_page(args)) or
+        s_create_consumable_stats_page(args)
+      }
+    }
+  }
+  return t
+end
+
+function s_create_joker_stats_page(args)
+  if not (args.ability and args.ability.set == 'Joker') then return end
+
+  local t = {
+    n = G.UIT.R,
+    config = {
+      align = 'cm',
+      padding = 0.1,
+    },
+    nodes = s_create_joker_wl(args)
+  }
+  return t
+end
+
+function s_create_consumable_stats_page(args)
+  if not (args.ability and args.ability.set ~= 'Joker') then return end
+
+  local t = {
+    n = G.UIT.R,
+    config = {
+      align = 'cm',
+      padding = 0.1,
+    },
+    nodes = s_create_consumable_usage(args)
+  }
+  return t
+end
+
+function s_create_consumable_usage(args) 
+  local _set = args.ability.set
+  local used = G.PROFILES[G.SETTINGS.profile]["consumeable_usage"][args.config.center.key].count
+  local total_used = 0
+
+  for k, v in pairs(G.P_CENTERS) do
+    if v.set == _set then
+      total_used = total_used + G.PROFILES[G.SETTINGS.profile]["consumeable_usage"][k].count
+    end
+  end
+
+  local t = {
+    {
+      n = G.UIT.R,
+      config = {
+        align = 'cm',
+        padding = 0.2,
+        r = 0.1,
+        colour = G.C.L_BLACK,
+        outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+        outline = 1.15,
+      },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = {
+            align = 'cm',
+            padding = 0.02,
+          },
+          nodes = {
+            {
+              n = G.UIT.T,
+              config = {
+                align = 'cm',
+                text = 'Usage',
+                scale = 0.4,
+                colour = G.C.UI.TEXT_LIGHT,
+                shadow = true,
+              },
+            },
+          }
+        },
+        {
+          n = G.UIT.R,
+          config = {
+            align = 'cm',
+            padding = 0.2,
+            r = 0.1,
+            colour = G.C.BLACK,
+            outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+            outline = 1.15,
+          },
+          nodes = {
+            {
+              n = G.UIT.R,
+              config = {
+                align = 'cm',
+              },
+              nodes = {
+                {
+                  n = G.UIT.T,
+                  config = {
+                    align = 'cm',
+                    text = 'Total used: '..used,
+                    scale = 0.4,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true,
+                  },
+                }
+              }
+            },
+            {
+              n = G.UIT.R,
+              config = {
+                align = 'cm',
+              },
+              nodes = {
+                {
+                  n = G.UIT.T,
+                  config = {
+                    align = 'cm',
+                    text = round2((used/total_used)*100, 2)..'% of Total '..args.ability.set..'s used',
+                    scale = 0.4,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true,
+                  },
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return t
+end
+
+-- stole this from somewhere online
+-- why does lua not have it built in
+function round2(num, numDecimalPlaces)
+  return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
+end
+
+function s_create_joker_wl(args)
+  if not (args.ability and args.ability.set == 'Joker') then return end
+  local wins = {}
+  local losses = {}
+  local win_total = 0
+  local loss_total = 0
+
+  for i = 1, 8 do
+    wins[i] = G.PROFILES[G.SETTINGS.profile]['joker_usage'][args.config.center.key].wins[i] or 0
+    win_total = win_total + (G.PROFILES[G.SETTINGS.profile]['joker_usage'][args.config.center.key].wins[i] or 0)
+  end
+
+  for i = 1, 8 do
+    losses[i] = G.PROFILES[G.SETTINGS.profile]['joker_usage'][args.config.center.key].losses[i] or 0
+    loss_total = loss_total + (G.PROFILES[G.SETTINGS.profile]['joker_usage'][args.config.center.key].losses[i] or 0)
+  end
+
+  local t = {
+    {
+      n = G.UIT.R,
+      config = {
+        align = 'cm',
+        padding = 0.2,
+        r = 0.1,
+        colour = G.C.L_BLACK,
+        outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+        outline = 1.15,
+      },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = {
+            align = 'cm',
+            padding = 0.02,
+          },
+          nodes = {
+            {
+              n = G.UIT.T,
+              config = {
+                align = 'cm',
+                text = 'Wins/Losses',
+                scale = 0.4,
+                colour = G.C.UI.TEXT_LIGHT,
+                shadow = true,
+>>>>>>> Stashed changes
               },
             },
             nodes = {},
