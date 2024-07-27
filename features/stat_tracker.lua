@@ -215,7 +215,6 @@ local joker_highscore_types = {
         'Hit the Road',
         'Caino',
         'Yorick',
-        'Obelisk',
     },
 }
 
