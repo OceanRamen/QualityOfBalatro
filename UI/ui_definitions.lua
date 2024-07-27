@@ -296,8 +296,10 @@ G.FUNCS.statview_page_cycle = function(e)
   for j = 1, args.row do
     for i = args.col, 1, -1 do
       local c = S.card_display[j]:remove_card(S.card_display[j].cards[i])
-      c:remove()
-      c = nil
+      if c then
+        c:remove()
+        c = nil
+      end
     end
   end
 

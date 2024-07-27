@@ -691,7 +691,107 @@ function s_create_consumable_stats_page(args)
 end
 
 function s_create_consumable_usage(args)
-  return nil
+  local used = G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][args.config.center.key].count
+  local total_used = 0
+
+  for k, v in pairs(G.P_CENTERS) do
+    if v.set == args.ability.set then
+      total_used = total_used + (G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][k].count or 0)
+    end
+  end
+
+  local t = {
+    {
+      n = G.UIT.R,
+      config = {
+        align = 'cm',
+        padding = 0.2,
+        r = 0.1,
+        colour = G.C.L_BLACK,
+        outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+        outline = 1.15,
+      },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = {
+            align = 'cm',
+            padding = 0.02,
+          },
+          nodes = {
+            {
+              n = G.UIT.T,
+              config = {
+                align = 'cm',
+                text = 'Usage',
+                scale = 0.4,
+                colour = G.C.UI.TEXT_LIGHT,
+                shadow = true,
+              },
+            }
+          }
+        },
+        {
+          n = G.UIT.R,
+          config = {
+            align = 'cm',
+            padding = 0.1,
+            r = 0.1,
+            colour = G.C.BLACK,
+            outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+            outline = 1.15,
+          },
+          nodes = {
+            {
+              n = G.UIT.R,
+              config = {
+                align = 'cm',
+                padding = 0.05,
+              },
+              nodes = {
+                {
+                  n = G.UIT.T,
+                  config = {
+                    align = 'cm',
+                    text = 'Total Used: '..used,
+                    scale = 0.4,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true,
+                  },
+                }
+              }
+            },
+            {
+              n = G.UIT.R,
+              config = {
+                align = 'cm',
+                padding = 0.05,
+              },
+              nodes = {
+                {
+                  n = G.UIT.T,
+                  config = {
+                    align = 'cm',
+                    text = round2(((used/total_used)*100), 2)..'% or Total '..args.ability.set..'s used',
+                    scale = 0.4,
+                    colour = G.C.UI.TEXT_LIGHT,
+                    shadow = true,
+                  },
+                }
+              }
+            },
+          }
+        }
+      }
+    }
+  }
+  return t
+end
+
+-- function for rounding because apparently lua doesnt
+-- have a built in function
+function round2(num, numDecimalPlaces)
+  return tonumber(string.format("%." .. (numDecimalPlaces or 0) .. "f", num))
 end
 
 function s_create_joker_wl(args)
