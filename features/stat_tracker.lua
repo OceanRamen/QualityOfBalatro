@@ -299,17 +299,6 @@ local counter_type_table = {
     }
 }
 
-<<<<<<< Updated upstream
-local add_to_deck_ref = Card.add_to_deck
-function Card:add_to_deck()
-    if self.ability.set == 'Joker' and not self.st_counter then
-        self:init_st_counter()
-        self.st_ref_table = self.st_counter
-        ben()
-    end
-    add_to_deck_ref(self)
-end
-=======
 local highscore_type_table = {
     ['+ chips scale'] = {
         'Chips',
@@ -325,7 +314,6 @@ local highscore_type_table = {
         'Mult',
     },
 }
->>>>>>> Stashed changes
 
 -- saves the jokers current counter, like when you leave a run
 
@@ -349,30 +337,6 @@ end
 local hover_ref = Card.hover
 function Card:hover()
     hover_ref(self)
-<<<<<<< Updated upstream
-    if self.ability.set == 'Joker' and self.config.h_popup and self.area == G.jokers then
-        if not self.st_counter then
-            self:init_st_counter(self.st_ref_table)
-            self.st_ref_table = self.st_counter
-        end
-        if self.st_counter then
-            ben('no')
-            self:show_st_counter()
-        end
-    end
-end
-
-<<<<<<< Updated upstream
-function ben(string)
-    if string then
-        print(string)
-    else
-        print('ben')
-    end
-end
-
-=======
-=======
     self:should_init()
     self:should_display(true)
 end
@@ -386,8 +350,6 @@ function Card:stop_hover()
     self:should_display()
 end
 
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 -- hooks for calculating if a counter should be incremented
 
 local calculate_joker_ref = Card.calculate_joker
@@ -458,7 +420,9 @@ function Card:load_counters(cardTable)
     if cardTable['counter'] then
         self.counter_ref_table = cardTable['counter']
         self:init_counter(self.counter_ref_table)
-        self:should_display()
+        if self:has_counter() then
+            self:display_counter(false)
+        end
     end
 end
 
@@ -562,12 +526,6 @@ end
 -- based on compact view or not
 -- and if its locked
 
-<<<<<<< Updated upstream
-function Card:generate_st_counter_defintion()
-    if self.st_counter then
-        if not S.SETTINGS.modules.stattrack.features.joker_tracking.groups.compact_view then
-            self.st_counter.definition = {
-=======
 function Card:generate_counter_defintion()
     local definition = nil
     if not S.SETTINGS.modules.preferences.compact_view.enabled then
@@ -697,7 +655,6 @@ function Card:generate_counter_defintion()
             }
         else
             definition = {
->>>>>>> Stashed changes
                 n = G.UIT.ROOT,
                 config = {
                     align = 'cm',

@@ -27,8 +27,6 @@ function Saturn:set_globals()
             },
           },
         },
-<<<<<<< Updated upstream
-=======
         enabled = true,
       },
       preferences = {
@@ -41,7 +39,6 @@ function Saturn:set_globals()
         show_stickers = {
           enabled = false,
         },
->>>>>>> Stashed changes
       },
       deckviewer_plus = {
         enabled = true,
