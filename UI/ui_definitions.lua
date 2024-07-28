@@ -36,9 +36,9 @@ G.FUNCS.saturn_features = function(e)
 
   local ref_table = S.TEMP_SETTINGS.modules
   local _buttons = {
-    {label = 'StatTracker', toggle_ref = ref_table.stattrack, button_ref = 'config_stattracker',},
-    {label = 'DeckViewer+', toggle_ref = ref_table.deckviewer_plus, button_ref = 'config_deckviewer',},
-    {label = 'Challenger+', toggle_ref = ref_table.challenger_plus, button_ref = 'config_challenger',},
+    {label = 'StatTracker', toggle_ref = ref_table.stattrack, ref_value = 'enabled', button_ref = 'config_stattracker',},
+    {label = 'DeckViewer+', toggle_ref = ref_table.deckviewer_plus, ref_value = 'enabled', button_ref = 'config_deckviewer',},
+    {label = 'Challenger+', toggle_ref = ref_table.challenger_plus, ref_value = 'enabled', button_ref = 'config_challenger',},
   }
   local _tabs = {
     {label = 'Features',},
@@ -63,8 +63,8 @@ G.FUNCS.saturn_preferences = function(e)
 
   local ref_table = S.TEMP_SETTINGS.modules.preferences
   local _buttons = {
-    {label = 'Animation Skip', toggle_ref = ref_table.remove_animations,},
-    {label = 'Compact View', toggle_ref = ref_table.compact_view,},
+    {label = 'Animation Skip', toggle_ref = ref_table.remove_animations, ref_value = 'enabled',},
+    {label = 'Compact View', toggle_ref = ref_table.compact_view, ref_value = 'enabled'},
   }
   local _tabs = {
     {label = "Features", button_ref = 'saturn_features'},
