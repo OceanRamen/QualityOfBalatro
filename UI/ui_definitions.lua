@@ -30,7 +30,7 @@ end
 -- main tabs
 
 -- features tab
-function G.FUNCS.saturn_features(e)
+G.FUNCS.saturn_features = function(e)
   G.SETTINGS.paused = true
   chosen_tab = 'saturn_features'
 
@@ -57,7 +57,7 @@ function G.FUNCS.saturn_features(e)
 end
 
 -- preferences tab
-function G.FUNCS.saturn_preferences(e)
+G.FUNCS.saturn_preferences = function(e)
   G.SETTINGS.paused = true
   chosen_tab = 'saturn_preferences'
 
@@ -83,7 +83,7 @@ function G.FUNCS.saturn_preferences(e)
 end
 
 -- stats tab
-function G.FUNCS.saturn_stats(e)
+G.FUNCS.saturn_stats = function(e)
   G.SETTINGS.paused = true
   chosen_tab = 'saturn_stats'
   S.current_page = 0
@@ -113,7 +113,7 @@ end
 -- config buttons
 
 -- stat tracker config
-function G.FUNCS.config_stattracker(e)
+G.FUNCS.config_stattracker = function(e)
   G.SETTINGS.paused = true
 
   local ref_table = S.TEMP_SETTINGS.modules.stattrack.features.joker_tracking.groups
@@ -137,7 +137,7 @@ function G.FUNCS.config_stattracker(e)
 end
 
 -- highscore config
-function G.FUNCS.config_highscore(e)
+G.FUNCS.config_highscore = function(e)
   G.SETTINGS.paused = true
 
   local ref_table = S.TEMP_SETTINGS.modules.highscore.features.highscore_counter.groups
@@ -163,7 +163,7 @@ function G.FUNCS.config_highscore(e)
 end
 
 -- deckviewer config
-function G.FUNCS.config_deckviewer(e)
+G.FUNCS.config_deckviewer = function(e)
   G.SETTINGS.paused = true
 
   local ref_table = S.TEMP_SETTINGS.modules.deckviewer_plus.features
@@ -182,7 +182,7 @@ function G.FUNCS.config_deckviewer(e)
 end
 
 -- challenger config
-function G.FUNCS.config_challenger(e)
+G.FUNCS.config_challenger = function(e)
   G.SETTINGS.paused = true
 
   local ref_table = S.TEMP_SETTINGS.modules.challenger_plus.features
@@ -204,10 +204,10 @@ end
 -- stat view buttons
 
 -- general stats
-function G.FUNCS.view_general(e) end
+G.FUNCS.view_general = function(e) end
 
 -- joker stats
-function G.FUNCS.view_jokers(e)
+G.FUNCS.view_jokers = function(e)
   G.SETTINGS.paused = true
 
   local card_display = {_type = 'Joker', col = 5, row = 2,}
@@ -222,7 +222,7 @@ function G.FUNCS.view_jokers(e)
 end
 
 -- tarot stats
-function G.FUNCS.view_tarots(e)
+G.FUNCS.view_tarots = function(e)
   G.SETTINGS.paused = true
 
   local card_display = {_type = 'Tarot', col = 5, row = 2,}
@@ -237,7 +237,7 @@ function G.FUNCS.view_tarots(e)
 end
 
 -- planet stats
-function G.FUNCS.view_planets(e)
+G.FUNCS.view_planets = function(e)
   G.SETTINGS.paused = true
 
   local card_display = {_type = 'Planet', col = 5, row = 2,}
@@ -252,7 +252,7 @@ function G.FUNCS.view_planets(e)
 end
 
 -- spectral stats
-function G.FUNCS.view_spectrals(e)
+G.FUNCS.view_spectrals = function(e)
   G.SETTINGS.paused = true
 
   local card_display = {_type = 'Spectral', col = 5, row = 2,}
@@ -269,7 +269,7 @@ end
 -- individual card stats view buttons
 
 -- specific card stats
-function G.FUNCS.card_stats(e)
+G.FUNCS.card_stats = function(e)
   G.SETTINGS.paused = true
 
   G.FUNCS.overlay_menu({
@@ -329,7 +329,7 @@ G.FUNCS.statview_page_cycle = function(e)
   end
 end
 
-function G.FUNCS.use_consumeables(e)
+G.FUNCS.use_consumeables = function(e)
   G.FUNCS:exit_overlay_menu()
   if G.consumeables and G.consumeables.cards then
     consume_cards(G.consumeables.cards)

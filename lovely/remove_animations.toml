@@ -9,7 +9,7 @@ priority = 0
 target = "card.lua"
 pattern = "G.E_MANAGER:add_event(Event({func = (function() G.GAME.dollar_buffer = 0; return true end)}))"
 position = "at"
-payload = "if not S.SETTINGS.modules.remove_animations.enabled then G.E_MANAGER:add_event(Event({func = (function() G.GAME.dollar_buffer = 0; return true end)})) else G.GAME.dollar_buffer = 0 end"
+payload = "if not S.SETTINGS.modules.preferences.remove_animations.enabled then G.E_MANAGER:add_event(Event({func = (function() G.GAME.dollar_buffer = 0; return true end)})) else G.GAME.dollar_buffer = 0 end"
 match_indent = true
 overwrite = false
 

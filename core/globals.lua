@@ -53,9 +53,6 @@ function Saturn:set_globals()
           mass_use_button = true,
         }
       },
-      remove_animations = {
-        enabled = true,
-      }
     }
   }
 

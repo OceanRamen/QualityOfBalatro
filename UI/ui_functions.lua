@@ -742,7 +742,7 @@ function s_create_consumable_usage(args)
             outline = 1.15,
           },
           nodes = {
-            {
+            { 
               n = G.UIT.R,
               config = {
                 align = 'cm',
