@@ -295,7 +295,7 @@ local counter_type_table = {
         'Mult Given',
     },
     ['chips/mult'] = {
-        'Chips / Mult',
+        'Chips/Mult',
     },
     ['obelisk'] = {
         'Most Played Hand',
@@ -419,8 +419,8 @@ function Card:init_counter(args)
             highscore_text_colour = args.highscore_type and G.C.UI.TEXT_LIGHT or nil,
             highscore_text_size = args.highscore_type and args.text_size or 0.3,
             highscore_prefix = (args.highscore_type and highscore_type_table[args.highscore_type][3]) or '',
-            highscore_value = args.highscore_type and args.highscore_value or 0,
-            highscore_old_value = args.highscore_type and args.highscore_old_value or 0,
+            highscore_value = ((args.highscore_type and args.highscore_value) or (args.highscore_type == 'x_mult_scale' and 1)) or 0,
+            highscore_old_value = ((args.highscore_type and args.highscore_old_value) or (args.highscore_type == 'x_mult_scale' and 1)) or 0,
             highscore_value_text = args.highscore_type and args.highscore_value_text or 'None',
             highscore_value_num = args.highscore_type and args.value_num or 1,
             highscore_value_colour = (args.highscore_type and highscore_type_table[args.highscore_type][2]) or G.C.UI.TEXT_LIGHT,
@@ -459,7 +459,7 @@ end
 -- from trying to do stuff to a nil value
 
 function Card:should_init()
-    if self.ability.set == 'Joker' and self.area == G.jokers then
+    if self.ability and self.ability.set == 'Joker' and self.area == G.jokers then
         if not self.has_counter() then
             self:init_counter(self.counter_ref_table)
             self.counter_ref_table = self.counter
@@ -602,7 +602,7 @@ function Card:generate_counter_defintion()
                                             align = "cm",
                                             colour = adjust_alpha(G.C.SET.Joker, 0.8),
                                             r = 0.1,
-                                            padding = 0.1,
+                                            padding = 0.12,
                                         }, 
                                         nodes = {
                                             {
@@ -652,9 +652,11 @@ function Card:generate_counter_defintion()
                                                                         n = G.UIT.C,
                                                                         config = {
                                                                             align = "cm",
-                                                                            padding = 0.02,
                                                                             r = 0.1,
+                                                                            padding = 0,
                                                                             colour = G.C.RED,
+                                                                            outline_colour = G.C.RED,
+                                                                            outline = 1.05,
                                                                         },
                                                                         nodes = {
                                                                             {
@@ -727,7 +729,7 @@ function Card:generate_counter_defintion()
                                             align = "cm",
                                             colour = adjust_alpha(G.C.SET.Joker, 0.8),
                                             r = 0.1,
-                                            padding = 0.1,
+                                            padding = 0.12,
                                         }, 
                                         nodes = {
                                             {
@@ -775,15 +777,18 @@ function Card:generate_counter_defintion()
                                                                 config = {
                                                                     align = "cm",
                                                                     colour = G.C.CLEAR,
+                                                                    
                                                                 }, 
                                                                 nodes = self.counter.counter_type == 'x mult' and {
                                                                     {
                                                                         n = G.UIT.C,
                                                                         config = {
                                                                             align = "cm",
-                                                                            padding = 0.02,
                                                                             r = 0.1,
+                                                                            padding = 0,
                                                                             colour = G.C.RED,
+                                                                            outline_colour = G.C.RED,
+                                                                            outline = 1.05,
                                                                         },
                                                                         nodes = {
                                                                             {
@@ -831,7 +836,7 @@ function Card:generate_counter_defintion()
                                                                                 config = {
                                                                                     align = "cm",
                                                                                     scale = self.counter.counter_value_size,
-                                                                                    text = ' / ',
+                                                                                    text = '/',
                                                                                     colour = G.C.L_BLACK,
                                                                                 },
                                                                             },
@@ -865,7 +870,7 @@ function Card:generate_counter_defintion()
                                                                             padding = 0.1,
                                                                             r = 0.1,
                                                                             scale = self.counter.counter_value_size,
-                                                                            text = self.ability.name == 'Obelisk' and self.counter.counter_value_text or self.counter.counter_prefix..self.counter.counter_value,
+                                                                            text =self.counter.counter_prefix..self.counter.counter_value,
                                                                             colour = self.counter.counter_value_colour ~= G.C.UI.TEXT_LIGHT and self.counter.counter_value_colour or G.C.UI.TEXT_DARK,
                                                                         },
                                                                     },
@@ -917,7 +922,7 @@ function Card:generate_counter_defintion()
                                             align = "cm",
                                             colour = adjust_alpha(G.C.SET.Joker, 0.8),
                                             r = 0.1,
-                                            padding = 0.1,
+                                            padding = 0.12,
                                         }, 
                                         nodes = {
                                             {
@@ -934,11 +939,11 @@ function Card:generate_counter_defintion()
                                                 n = G.UIT.C,
                                                 config = {
                                                     align = "cm",
-                                                    minw = 1.5,
-                                                    minh = 0.5,
                                                     r = 0.1,
-                                                    padding = 0.05,
+                                                    padding = 0.01,
                                                     colour = G.C.RED,
+                                                    outline_colour = G.C.RED,
+                                                    outline = 1.05,
                                                 }, 
                                                 nodes = {
                                                     {
@@ -1013,26 +1018,28 @@ function Card:generate_counter_defintion()
                                             align = "cm",
                                             colour = adjust_alpha(G.C.SET.Joker, 0.8),
                                             r = 0.1,
-                                            padding = 0.1,
+                                            padding = 0.12,
                                         }, 
-                                        nodes = {
+                                        nodes = self.counter.counter_type == 'x mult' and {
                                             {
                                                 n = G.UIT.T,
                                                 config = {
                                                     padding = 0.1,
                                                     r = 0.1,
-                                                    text = self.counter.counter_value_num > 1 and self.counter.counter_text..'s:' or self.counter.counter_text..':',
+                                                    text = self.counter.counter_text..':',
                                                     scale = self.counter.counter_text_size,
                                                     colour = self.counter.counter_text_colour,
                                                 }
                                             },
-                                            self.counter.counter_type == 'x mult' and {
+                                            {
                                                 n = G.UIT.C,
                                                 config = {
                                                     align = "cm",
                                                     r = 0.1,
-                                                    padding = 0.02,
+                                                    padding = 0.01,
                                                     colour = G.C.RED,
+                                                    outline_colour = G.C.RED,
+                                                    outline = 1.05,
                                                 }, 
                                                 nodes = {
                                                     {
@@ -1045,65 +1052,100 @@ function Card:generate_counter_defintion()
                                                         },
                                                     },
                                                 },
-                                            } 
-                                            or self.counter.counter_type == 'chips/mult' and {
-                                                n = G.UIT.C,
+                                            }
+                                        }
+                                        or self.counter.counter_type == 'chips/mult' and {
+                                            {
+                                                n = G.UIT.R,
                                                 config = {
                                                     align = "cm",
-                                                    padding = 0.02,
                                                     colour = G.C.CLEAR,
+                                                    r = 0.1,
+                                                    padding = 0,
                                                 },
                                                 nodes = {
                                                     {
                                                         n = G.UIT.T,
                                                         config = {
+                                                            padding = 0,
+                                                            r = 0.1,
+                                                            text = self.counter.counter_text..':',
+                                                            scale = self.counter.counter_text_size,
+                                                            colour = self.counter.counter_text_colour,
+                                                        }
+                                                    },
+                                                    {
+                                                        n = G.UIT.C,
+                                                        config = {
                                                             align = "cm",
-                                                            scale = self.counter.counter_value_size,
-                                                            text = '+'..(self.ability.name == 'Walkie Talkie' and (self.counter.counter_value * 10) or self.ability.name == 'Scholar' and (self.counter.counter_value * 20)),
-                                                            colour = G.C.BLUE,
+                                                            padding = 0.02,
+                                                            colour = G.C.CLEAR,
                                                         },
-                                                    },
-                                                },
-                                                {
-                                                    n = G.UIT.C,
-                                                    config = {
-                                                        align = "cm",
-                                                        padding = 0.02,
-                                                        colour = G.C.CLEAR,
-                                                    },
-                                                    nodes = {
-                                                        {
-                                                            n = G.UIT.T,
-                                                            config = {
-                                                                align = "cm",
-                                                                scale = self.counter.counter_value_size,
-                                                                text = ' / ',
-                                                                colour = G.C.L_BLACK,
+                                                        nodes = {
+                                                            {
+                                                                n = G.UIT.T,
+                                                                config = {
+                                                                    align = "cm",
+                                                                    scale = self.counter.counter_value_size,
+                                                                    text = '+'..(self.ability.name == 'Walkie Talkie' and (self.counter.counter_value * 10) or self.ability.name == 'Scholar' and (self.counter.counter_value * 20)),
+                                                                    colour = G.C.BLUE,
+                                                                },
                                                             },
                                                         },
                                                     },
-                                                },
-                                                {
-                                                    n = G.UIT.C,
-                                                    config = {
-                                                        align = "cm",
-                                                        padding = 0.02,
-                                                        colour = G.C.CLEAR,
-                                                    },
-                                                    nodes = {
-                                                        {
-                                                            n = G.UIT.T,
-                                                            config = {
-                                                                align = "cm",
-                                                                scale = self.counter.counter_value_size,
-                                                                text = '+'..self.counter.counter_value*4,
-                                                                colour = G.C.RED,
+                                                    {
+                                                        n = G.UIT.C,
+                                                        config = {
+                                                            align = "cm",
+                                                            padding = 0.02,
+                                                            colour = G.C.CLEAR,
+                                                        },
+                                                        nodes = {
+                                                            {
+                                                                n = G.UIT.T,
+                                                                config = {
+                                                                    align = "cm",
+                                                                    scale = self.counter.counter_value_size,
+                                                                    text = '/',
+                                                                    colour = G.C.UI.TEXT_LIGHT,
+                                                                },
                                                             },
                                                         },
                                                     },
+                                                    {
+                                                        n = G.UIT.C,
+                                                        config = {
+                                                            align = "cm",
+                                                            padding = 0.02,
+                                                            colour = G.C.CLEAR,
+                                                        },
+                                                        nodes = {
+                                                            {
+                                                                n = G.UIT.T,
+                                                                config = {
+                                                                    align = "cm",
+                                                                    scale = self.counter.counter_value_size,
+                                                                    text = '+'..self.counter.counter_value*4,
+                                                                    colour = G.C.RED,
+                                                                },
+                                                            },
+                                                        },
+                                                    }
                                                 }
                                             }
-                                            or not is_obelisk and {
+                                        }
+                                        or not is_obelisk and {
+                                            {
+                                                n = G.UIT.T,
+                                                config = {
+                                                    padding = 0.1,
+                                                    r = 0.1,
+                                                    text = self.counter.counter_text..':',
+                                                    scale = self.counter.counter_text_size,
+                                                    colour = self.counter.counter_text_colour,
+                                                }
+                                            },
+                                            {
                                                 n = G.UIT.C,
                                                 config = {
                                                     align = "cm",
@@ -1123,8 +1165,8 @@ function Card:generate_counter_defintion()
                                                         },
                                                     },
                                                 },
-                                            } or nil,
-                                        },
+                                            }
+                                        }
                                     },
                                 },
                             },
@@ -1376,12 +1418,14 @@ end
 -- function for setting the counter value to a specific value
   
 function Card:set_counter(counter, highscore)
-    self:should_init()
-    if self:has_counter() then
-        if not counter then counter = self.counter.counter_value end
-        if not highscore then highscore = self.counter.highscore_value end
-        self.counter.counter_value = counter
-        self.counter.highscore_value = highscore
+    if self then
+        self:should_init()
+        if self:has_counter() then
+            if not counter then counter = self.counter.counter_value end
+            if not highscore then highscore = self.counter.highscore_value end
+            self.counter.counter_value = counter
+            self.counter.highscore_value = highscore
+        end
     end
 end
 
@@ -1446,19 +1490,19 @@ function Card:calculate_counters(context)
         end
     elseif context.selling_card then
         if self.ability.name == 'Campfire' and not context.blueprint then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
     elseif context.reroll_shop then
         if self.ability.name == 'Flash Card' and not context.blueprint then
-            self.set_counter(nil, self.ability.mult)
+            self:set_counter(nil, self.ability.mult)
         end
     elseif context.skipping_booster then
         if self.ability.name == 'Red Card' and not context.blueprint then
-            self.set_counter(nil, self.ability.mult)
+            self:set_counter(nil, self.ability.mult)
         end
     elseif context.skip_blind then
         if self.ability.name == 'Throwback' and not context.blueprint then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
     elseif context.first_hand_drawn then
         if self.ability.name == 'Certificate' then
@@ -1467,7 +1511,7 @@ function Card:calculate_counters(context)
     elseif context.playing_card_added and not self.getting_sliced then
         if self.ability.name == 'Hologram' and (not context.blueprint)
         and context.cards and context.cards[1] then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
     elseif context.setting_blind and not self.getting_sliced then
         if self.ability.name == 'Chicot' and not context.blueprint
@@ -1475,7 +1519,7 @@ function Card:calculate_counters(context)
             self:increment_counter(1)
         end
         if self.ability.name == 'Madness' and not context.blueprint and not context.blind.boss then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
         if self.ability.name == 'Burglar' and not (context.blueprint_card or self).getting_sliced then
             self:increment_counter(self.ability.extra)
@@ -1491,27 +1535,27 @@ function Card:calculate_counters(context)
         end
     elseif context.cards_destroyed then
         if self.ability.name == 'Caino' and not context.blueprint then
-            self.set_counter(nil, self.ability.caino_xmult)
+            self:set_counter(nil, self.ability.caino_xmult)
         end
         if self.ability.name == 'Glass Joker' and not context.blueprint then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
     elseif context.remove_playing_cards then
         if self.ability.name == 'Caino' and not context.blueprint then
-            self.set_counter(nil, self.ability.caino_xmult)
+            self:set_counter(nil, self.ability.caino_xmult)
         end
         if self.ability.name == 'Glass Joker' and not context.blueprint then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
     elseif context.using_consumeable then
         if self.ability.name == 'Glass Joker' and not context.blueprint and context.consumeable.ability.name == 'The Hanged Man'  then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
         if self.ability.name == 'Fortune Teller' and not context.blueprint and (context.consumeable.ability.set == "Tarot") then
-            self.set_counter(nil, G.GAME.consumeable_usage_total.tarot)
+            self:set_counter(nil, G.GAME.consumeable_usage_total.tarot)
         end
         if self.ability.name == 'Constellation' and not context.blueprint and context.consumeable.ability.set == 'Planet' then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
     elseif context.pre_discard then
         if self.ability.name == 'Burnt Joker' and G.GAME.current_round.discards_used <= 0 and not context.hook then
@@ -1519,12 +1563,12 @@ function Card:calculate_counters(context)
         end
     elseif context.discard then
         if self.ability.name == 'Yorick' and not context.blueprint then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
         if self.ability.name == 'Castle' and
         not context.other_card.debuff and
         context.other_card:is_suit(G.GAME.current_round.castle_card.suit) and not context.blueprint then
-            self.set_counter(nil, self.ability.extra.chips)
+            self:set_counter(nil, self.ability.extra.chips)
         end
         if self.ability.name == 'Trading Card' and not context.blueprint and 
         G.GAME.current_round.discards_used <= 0 and #context.full_hand == 1 then
@@ -1533,10 +1577,10 @@ function Card:calculate_counters(context)
         if self.ability.name == 'Hit the Road' and
         not context.other_card.debuff and
         context.other_card:get_id() == 11 and not context.blueprint then
-            self.set_counter(nil, self.ability.x_mult)
+            self:set_counter(nil, self.ability.x_mult)
         end
         if self.ability.name == 'Green Joker' and not context.blueprint and context.other_card == context.full_hand[#context.full_hand] then
-            self.set_counter(nil, self.ability.mult)
+            self:set_counter(nil, self.ability.mult)
         end
         if self.ability.name == 'Mail-In Rebate' and
         not context.other_card.debuff and
