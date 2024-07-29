@@ -13,6 +13,10 @@ function Controller:queue_R_cursor_press(x, y)
     r_click_ref(self, x, y)
 end
 
+-- this one joker has caused me so much pain
+
+local obelisk_scale_factor = 0.9
+
 -- splitting the jokers into the different types
 -- to add another joker just put it in its respective category
 
@@ -367,6 +371,27 @@ function Card:calculate_dollar_bonus()
     return ref_return
 end
 
+local card_update_ref = Card.update
+function Card:update(dt)
+    self:should_init()
+    card_update_ref(self, dt)
+    if G.STAGE == G.STAGES.RUN and self:has_counter() then
+        if self.ability.name == "Steel Joker" then 
+            self:set_counter(nil, ((self.ability.steel_tally*0.2) + 1))
+        end
+        if self.ability.name == "Stone Joker" then 
+            self:set_counter(nil, self.ability.stone_tally*25)
+        end
+        if self.ability.name == 'Bull' then
+            self:set_counter(nil, self.ability.extra*math.max(0,(G.GAME.dollars + (G.GAME.dollar_buffer or 0))))
+        end
+        if self.ability.name == 'Bootstraps' then
+            self:set_counter(nil, self.ability.extra.mult*math.floor((G.GAME.dollars + (G.GAME.dollar_buffer or 0))/self.ability.extra.dollars))
+        end
+    end
+    self:update_counter()
+end
+
 -- function for initialising the counter
 
 function Card:init_counter(args)
@@ -381,7 +406,9 @@ function Card:init_counter(args)
             counter_text_size = args.text_size or 0.3,
             counter_prefix = counter_type_table[args.counter_type][3] or '',
             counter_value = args.counter_value or 0,
-            counter_value_text = args.counter_value_text or 'None',
+            counter_old_value = args.counter_old_value or 0,
+            counter_value_text = args.counter_value_text or {'None',},
+            counter_old_value_text = args.counter_old_value_text or {'None',},
             counter_value_num = args.counter_value_num or 1,
             counter_value_colour = counter_type_table[args.counter_type][2] or G.C.UI.TEXT_LIGHT,
             counter_value_size = args.counter_value_size or 0.3,
@@ -393,6 +420,7 @@ function Card:init_counter(args)
             highscore_text_size = args.highscore_type and args.text_size or 0.3,
             highscore_prefix = (args.highscore_type and highscore_type_table[args.highscore_type][3]) or '',
             highscore_value = args.highscore_type and args.highscore_value or 0,
+            highscore_old_value = args.highscore_type and args.highscore_old_value or 0,
             highscore_value_text = args.highscore_type and args.highscore_value_text or 'None',
             highscore_value_num = args.highscore_type and args.value_num or 1,
             highscore_value_colour = (args.highscore_type and highscore_type_table[args.highscore_type][2]) or G.C.UI.TEXT_LIGHT,
@@ -444,40 +472,54 @@ end
 -- in the saturn menu
 
 function Card:should_display(hover)
+    if self:check_enabled() then
+        self:display_counter(hover)
+    end
+end
+
+function Card:check_enabled()
     local show_counter = false
+    local checked = false
     if self.ability.set == 'Joker' and self.area == G.jokers then
         self:should_init()
-        if self:has_counter() then
-            if (self.counter.counter_type == 'money gen' or self.counter.counter_type == 'value gen') and
-            S.SETTINGS.modules.stattrack.features.joker_tracking.groups['money_generators'] then
+        if self:has_counter() and S.SETTINGS.modules.stattrack.enabled then
+            if (self.counter.counter_type == 'money gen' or self.counter.counter_type == 'value gen') and not checked then
+                if S.SETTINGS.modules.stattrack.features.joker_tracking.groups['money_generators'] then
+                    show_counter = true
+                end
+                checked = true
+            elseif (self.counter.counter_type == 'card gen' or self.counter.counter_type == 'cards added' or self.counter.counter_type == 'joker gen') and not checked then
+                if S.SETTINGS.modules.stattrack.features.joker_tracking.groups['card_generators'] then
+                    show_counter = true
+                end
+                checked = true
+            elseif self.counter.counter_type == '+ chips' and not checked then
+                if S.SETTINGS.modules.stattrack.features.joker_tracking.groups['chips_plus'] then
+                    show_counter = true
+                end
+                checked = true
+            elseif self.counter.counter_type == '+ mult' and not checked then
+                if S.SETTINGS.modules.stattrack.features.joker_tracking.groups['mult_plus'] then
+                    show_counter = true
+                end
+            elseif self.counter.counter_type == 'x mult' and not checked then
+                if S.SETTINGS.modules.stattrack.features.joker_tracking.groups['mult_mult'] then
+                    show_counter = true
+                end
+                checked = true
+            elseif self.counter.counter_type and S.SETTINGS.modules.stattrack.features.joker_tracking.groups['miscellaneous'] and not checked then
                 show_counter = true
-            elseif (self.counter.counter_type == 'card gen' or self.counter.counter_type == 'cards added' or self.counter.counter_type == 'joker gen') and
-            S.SETTINGS.modules.stattrack.features.joker_tracking.groups['card_generators'] then
-                show_counter = true
-            elseif self.counter.counter_type == '+ chips' and
-            S.SETTINGS.modules.stattrack.features.joker_tracking.groups['chips_plus'] then
-                show_counter = true
-            elseif self.counter.counter_type == '+ mult' and
-            S.SETTINGS.modules.stattrack.features.joker_tracking.groups['mult_plus'] then
-                show_counter = true
-            elseif self.counter.counter_type == 'x mult' and
-            S.SETTINGS.modules.stattrack.features.joker_tracking.groups['mult_mult'] then
-                show_counter = true
-            elseif self.counter.counter_type and S.SETTINGS.modules.stattrack.features.joker_tracking.groups['miscellaneous'] then
-                show_counter = true
-            end
-            if show_counter then
-                self:display_counter(hover)
             end
         end
     end
+    return show_counter
 end
 
 -- function for locking the counter to always be displayed
 
 function Card:counter_lock()
     self:should_init()
-    if self:has_counter() then
+    if self:has_counter() and self:check_enabled() then
         self.counter.locked = not self.counter.locked
     end
 end
@@ -527,6 +569,7 @@ end
 
 function Card:generate_counter_defintion()
     local definition = nil
+    local is_obelisk = self.ability.name == 'Obelisk' -- this joker i swear
     if not S.SETTINGS.modules.preferences.compact_view.enabled then
         if self:is_scaling() and self.counter.locked then
             definition = {
@@ -723,6 +766,7 @@ function Card:generate_counter_defintion()
                                                         config = {
                                                             align = "cm",
                                                             padding = 0.03,
+                                                            id = 'counter_row',
                                                             colour = G.C.CLEAR,
                                                         }, 
                                                         nodes = {
@@ -813,7 +857,7 @@ function Card:generate_counter_defintion()
                                                                         },
                                                                     },
                                                                 }
-                                                                or {
+                                                                or not is_obelisk and {
                                                                     {
                                                                         n = G.UIT.T,
                                                                         config = {
@@ -825,7 +869,7 @@ function Card:generate_counter_defintion()
                                                                             colour = self.counter.counter_value_colour ~= G.C.UI.TEXT_LIGHT and self.counter.counter_value_colour or G.C.UI.TEXT_DARK,
                                                                         },
                                                                     },
-                                                                },
+                                                                } or nil,
                                                             },
                                                         },
                                                     },
@@ -1059,7 +1103,7 @@ function Card:generate_counter_defintion()
                                                     },
                                                 }
                                             }
-                                            or {
+                                            or not is_obelisk and {
                                                 n = G.UIT.C,
                                                 config = {
                                                     align = "cm",
@@ -1074,12 +1118,12 @@ function Card:generate_counter_defintion()
                                                             padding = 0.1,
                                                             r = 0.1,
                                                             scale = self.counter.counter_value_size,
-                                                            text = self.ability.name == 'Obelisk' and self.counter.counter_value_text or self.counter.counter_prefix..self.counter.counter_value,
+                                                            text = self.counter.counter_prefix..self.counter.counter_value,
                                                             colour = self.counter.counter_value_colour,
                                                         },
                                                     },
                                                 },
-                                            },
+                                            } or nil,
                                         },
                                     },
                                 },
@@ -1088,6 +1132,77 @@ function Card:generate_counter_defintion()
                     }
                 },
             }
+        end
+    end
+    if is_obelisk then -- oh boy
+        if not S.SETTINGS.modules.preferences.compact_view.enabled then
+            definition.nodes[1].nodes[1].nodes[1].nodes[2].nodes = {}
+            for i = 1, #self.counter.counter_value_text do
+                table.insert(definition.nodes[1].nodes[1].nodes[1].nodes[2].nodes, {
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        colour = G.C.CLEAR,
+                    }, 
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                align = "cm",
+                                padding = 0.1,
+                                r = 0.1,
+                                scale = self.counter.counter_value_size,
+                                text = self.counter.counter_value_text[i],
+                                colour = self.counter.counter_value_colour ~= G.C.UI.TEXT_LIGHT and self.counter.counter_value_colour or G.C.UI.TEXT_DARK,
+                            },
+                        }
+                    },
+                })
+            end
+        else
+            definition.nodes[1].nodes[1].nodes[1].nodes = {
+                {
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        colour = G.C.CLEAR,
+                    },
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                padding = 0.1,
+                                r = 0.1,
+                                text = self.counter.counter_value_num > 1 and self.counter.counter_text..'s:' or self.counter.counter_text..':',
+                                scale = self.counter.counter_text_size*(1-((1-obelisk_scale_factor)*(#self.counter.counter_value_text-1))),
+                                colour = self.counter.counter_text_colour,
+                            }
+                        },
+                    }
+                }
+            }
+            for i = 1, #self.counter.counter_value_text do
+                table.insert(definition.nodes[1].nodes[1].nodes[1].nodes, {
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        colour = G.C.CLEAR,
+                    }, 
+                    nodes = {
+                        {
+                            n = G.UIT.T,
+                            config = {
+                                align = "cm",
+                                padding = 0.1,
+                                r = 0.1,
+                                scale = self.counter.counter_value_size*(1-((1-obelisk_scale_factor)*(#self.counter.counter_value_text-1))),
+                                text = self.counter.counter_value_text[i],
+                                colour = self.counter.counter_value_colour,
+                            },
+                        }
+                    },
+                })
+            end
         end
     end
     return definition
@@ -1123,7 +1238,7 @@ function Card:generate_counter_config()
                 wh_bond = 'Weak',
                 offset = {
                     x = 0,
-                    y = offset_below and self.counter.highscore_offset or self.st_counter.highscore_offset * -1
+                    y = offset_below and self.counter.highscore_offset or self.counter.highscore_offset * -1
                 },  
                 type = 'bm'
             }
@@ -1136,7 +1251,7 @@ function Card:generate_counter_config()
                 wh_bond = 'Weak',
                 offset = {
                     x = 0,
-                    y = offset_below and self.counter.counter_offset or self.st_counter.counter_offset * -1
+                    y = offset_below and self.counter.counter_offset or self.counter.counter_offset * -1
                 },  
                 type = 'bm'
             }
@@ -1146,9 +1261,10 @@ function Card:generate_counter_config()
 end
 
 -- generates the ui box for the counter using the definition and config
+-- also i hate obelisk
 
 function Card:generate_counter_UI()
-    return UIBox{
+   return UIBox{
         definition = self:generate_counter_defintion(),
         config = self:generate_counter_config(),
     }
@@ -1156,20 +1272,42 @@ end
 
 -- function for showing the updated counter after a change in value
 
-function Card:update_counter()
+function Card:update_counter(force)
     self:should_init()
-    self:should_display(false)
+    if self:has_counter() then
+        if not self:check_enabled() and self.counter.locked then
+            self.counter.locked = false
+            if self.children.counter then
+                self.children.counter = nil
+            end
+        end
+        if self.counter.counter_value ~= self.counter.counter_old_value then
+            self.counter.counter_old_value = self.counter.counter_value
+            self:should_display(false)
+        end
+        if self.counter.highscore_value ~= self.counter.highscore_old_value then
+            self.counter.highscore_old_value = self.counter.highscore_value
+            self:should_display(false)
+        end
+        if self.counter.counter_value_text ~= self.counter.counter_old_value_text then
+            self.counter.counter_old_value_text = self.counter.counter_value_text
+            self:should_display(false)
+        end
+        if force then
+            self:should_display()
+        end
+    end
 end
 
 -- updates all counters, useful for one saturn settings are changed
 -- like compact view turned on/off, all counters need to be updated
 -- to fit new settings
 
-function update_all_counters()
+function update_all_counters(force)
     if not (G.jokers and G.jokers.cards) then return end
     for k, v in pairs(G.jokers.cards) do
         if v.ability and v.ability.set == 'Joker' then
-            v:update_counter()
+            v:update_counter(force)
         end
     end
 end
@@ -1181,20 +1319,22 @@ end
 -- display and locked counters
 
 function Card:display_counter(hover)
-    if hover then
-        local locked = false
-        if self.counter.locked then
-            self.counter.locked = false
-            locked = true
-        end
-        self.children.counter = nil
-        self.children.h_popup.children.counter = self:generate_counter_UI()
-        if locked then
-            self.counter.locked = true
-        end
-    else
-        if self.counter.locked then
-            self.children.counter = self:generate_counter_UI()
+    if self.facing == 'front' then
+        if hover then
+            local locked = false
+            if self.counter.locked then
+                self.counter.locked = false
+                locked = true
+            end
+            self.children.counter = nil
+            self.children.h_popup.children.counter = self:generate_counter_UI()
+            if locked then
+                self.counter.locked = true
+            end
+        else
+            if self.counter.locked then
+                self.children.counter = self:generate_counter_UI()
+            end
         end
     end
 end
@@ -1205,9 +1345,10 @@ function Card:increment_counter(counter, highscore)
     if not counter then counter = 0 end
     if not highscore then highscore = 0 end
     self:should_init()
-    self.counter.counter_value = self.counter.counter_value + counter
-    self.counter.highscore_value = self.counter.highscore_value + highscore
-    self:update_counter()
+    if self:has_counter() then
+        self.counter.counter_value = self.counter.counter_value + counter
+        self.counter.highscore_value = self.counter.highscore_value + highscore
+    end
 end
 
 -- function for decreasing the counter value
@@ -1216,51 +1357,50 @@ function Card:decrement_counter(counter, highscore)
     if not counter then counter = 0 end
     if not highscore then highscore = 0 end
     self:should_init()
-    self.counter.counter_value = self.counter.counter_value - counter
-    self.counter.highscore_value = self.counter.highscore_value - highscore
-    self:update_counter()
+    if self:has_counter() then
+        self.counter.counter_value = self.counter.counter_value - counter
+        self.counter.highscore_value = self.counter.highscore_value - highscore
+    end
 end
 
 -- function for setting the counter value to 0
   
 function Card:reset_counter()
     self:should_init()
-    self.counter.counter_value = 0
-    self.counter.highscore_value = 0
-    self:update_st_counter()
+    if self:has_counter() then
+        self.counter.counter_value = 0
+        self.counter.highscore_value = 0
+    end
 end
 
 -- function for setting the counter value to a specific value
   
 function Card:set_counter(counter, highscore)
-    if not counter then counter = self.counter.counter_value end
-    if not highscore then highscore = self.counter.highscore_value end
     self:should_init()
-    self.counter.counter_value = counter
-    self.counter.highscore_value = highscore
-    self:update_counter()
+    if self:has_counter() then
+        if not counter then counter = self.counter.counter_value end
+        if not highscore then highscore = self.counter.highscore_value end
+        self.counter.counter_value = counter
+        self.counter.highscore_value = highscore
+    end
 end
 
 -- function for setting the counter text, as of now only needed for obelisk
 
 function Card:set_counter_text(text)
     self:should_init()
-    local output_text = ''
-    for k, v in pairs(text) do
-        output_text = output_text..v
-        if text[k] ~= text[#text] then
-            output_text = output_text..'/'
-        end
+    if self:has_counter() then
+        self.counter.counter_value_text = text
+        self.counter.counter_value_num = #text
     end
-    self.counter.counter_value_text = output_text
-    self.counter.counter_value_num = #text
-    self:update_counter()
 end
 
 -- returns the counter value, not needed as of now
 
 function Card:get_counter_value()
-    return self.counter.counter_value, self.counter.highscore_value
+    if self:has_counter() then
+        return self.counter.counter_value, self.counter.highscore_value
+    end
 end
 
 -- function for incrementing the counter of money generating jokers that give money
@@ -1304,29 +1444,44 @@ function Card:calculate_counters(context)
                 self:increment_counter(1)
             end
         end
+    elseif context.selling_card then
+        if self.ability.name == 'Campfire' and not context.blueprint then
+            self.set_counter(nil, self.ability.x_mult)
+        end
+    elseif context.reroll_shop then
+        if self.ability.name == 'Flash Card' and not context.blueprint then
+            self.set_counter(nil, self.ability.mult)
+        end
+    elseif context.skipping_booster then
+        if self.ability.name == 'Red Card' and not context.blueprint then
+            self.set_counter(nil, self.ability.mult)
+        end
+    elseif context.skip_blind then
+        if self.ability.name == 'Throwback' and not context.blueprint then
+            self.set_counter(nil, self.ability.x_mult)
+        end
     elseif context.first_hand_drawn then
         if self.ability.name == 'Certificate' then
             self:increment_counter(1)
+        end
+    elseif context.playing_card_added and not self.getting_sliced then
+        if self.ability.name == 'Hologram' and (not context.blueprint)
+        and context.cards and context.cards[1] then
+            self.set_counter(nil, self.ability.x_mult)
         end
     elseif context.setting_blind and not self.getting_sliced then
         if self.ability.name == 'Chicot' and not context.blueprint
         and context.blind.boss and not self.getting_sliced then
             self:increment_counter(1)
         end
+        if self.ability.name == 'Madness' and not context.blueprint and not context.blind.boss then
+            self.set_counter(nil, self.ability.x_mult)
+        end
         if self.ability.name == 'Burglar' and not (context.blueprint_card or self).getting_sliced then
             self:increment_counter(self.ability.extra)
         end
-        if self.ability.name == 'Cartomancer' and not (context.blueprint_card or self).getting_sliced and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-            self:increment_counter(1)
-        end
         if self.ability.name == 'Marble Joker' and not (context.blueprint_card or self).getting_sliced  then
             self:increment_counter(1)
-        end
-    elseif context.destroying_card and not context.blueprint then
-        if self.ability.name == 'Sixth Sense' and #context.full_hand == 1 and context.full_hand[1]:get_id() == 6 and G.GAME.current_round.hands_played == 0 then
-            if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-                self:increment_counter(1)
-            end
         end
     elseif context.debuffed_hand then 
         if self.ability.name == 'Matador' then
@@ -1334,14 +1489,54 @@ function Card:calculate_counters(context)
                 self:increment_counter(self.ability.extra)
             end
         end
+    elseif context.cards_destroyed then
+        if self.ability.name == 'Caino' and not context.blueprint then
+            self.set_counter(nil, self.ability.caino_xmult)
+        end
+        if self.ability.name == 'Glass Joker' and not context.blueprint then
+            self.set_counter(nil, self.ability.x_mult)
+        end
+    elseif context.remove_playing_cards then
+        if self.ability.name == 'Caino' and not context.blueprint then
+            self.set_counter(nil, self.ability.caino_xmult)
+        end
+        if self.ability.name == 'Glass Joker' and not context.blueprint then
+            self.set_counter(nil, self.ability.x_mult)
+        end
+    elseif context.using_consumeable then
+        if self.ability.name == 'Glass Joker' and not context.blueprint and context.consumeable.ability.name == 'The Hanged Man'  then
+            self.set_counter(nil, self.ability.x_mult)
+        end
+        if self.ability.name == 'Fortune Teller' and not context.blueprint and (context.consumeable.ability.set == "Tarot") then
+            self.set_counter(nil, G.GAME.consumeable_usage_total.tarot)
+        end
+        if self.ability.name == 'Constellation' and not context.blueprint and context.consumeable.ability.set == 'Planet' then
+            self.set_counter(nil, self.ability.x_mult)
+        end
     elseif context.pre_discard then
         if self.ability.name == 'Burnt Joker' and G.GAME.current_round.discards_used <= 0 and not context.hook then
             self:increment_counter(1)
         end
     elseif context.discard then
+        if self.ability.name == 'Yorick' and not context.blueprint then
+            self.set_counter(nil, self.ability.x_mult)
+        end
+        if self.ability.name == 'Castle' and
+        not context.other_card.debuff and
+        context.other_card:is_suit(G.GAME.current_round.castle_card.suit) and not context.blueprint then
+            self.set_counter(nil, self.ability.extra.chips)
+        end
         if self.ability.name == 'Trading Card' and not context.blueprint and 
         G.GAME.current_round.discards_used <= 0 and #context.full_hand == 1 then
             self:increment_counter(1)
+        end
+        if self.ability.name == 'Hit the Road' and
+        not context.other_card.debuff and
+        context.other_card:get_id() == 11 and not context.blueprint then
+            self.set_counter(nil, self.ability.x_mult)
+        end
+        if self.ability.name == 'Green Joker' and not context.blueprint and context.other_card == context.full_hand[#context.full_hand] then
+            self.set_counter(nil, self.ability.mult)
         end
         if self.ability.name == 'Mail-In Rebate' and
         not context.other_card.debuff and
@@ -1366,6 +1561,13 @@ function Card:calculate_counters(context)
                 (next(context.card_effects[1]) or #context.card_effects > 1) then
                     self:increment_counter(self.ability.extra)
                 end
+            end
+        elseif not context.blueprint then
+            if self.ability.name == 'Campfire' and G.GAME.blind.boss then
+                self:set_counter(nil, self.ability.x_mult)
+            end
+            if self.ability.name == 'Hit the Road' then
+                self:set_counter(nil, self.ability.x_mult)
             end
         end
     elseif context.individual then
@@ -1604,25 +1806,6 @@ function Card:calculate_counters(context)
                     self:increment_counter(G.GAME.hands[context.scoring_name].played)
                     self:set_counter(nil, G.GAME.hands[context.scoring_name].played)
                 end
-                if self.ability.name == 'Vagabond' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-                    if G.GAME.dollars <= self.ability.extra then
-                        self:increment_counter(1)
-                    end
-                end
-                if self.ability.name == 'Superposition' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-                    local aces = 0
-                    for i = 1, #context.scoring_hand do
-                        if context.scoring_hand[i]:get_id() == 14 then aces = aces + 1 end
-                    end
-                    if aces >= 1 and next(context.poker_hands["Straight"]) then
-                        self:increment_counter(1)
-                    end
-                end
-                if self.ability.name == 'Seance' and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then
-                    if next(context.poker_hands[self.ability.extra.poker_hand]) then
-                        self:increment_counter(1)
-                    end
-                end
                 if self.ability.name == 'Flower Pot' then
                     local suits = {
                         ['Hearts'] = 0,
@@ -1760,7 +1943,6 @@ function Card:calculate_counters(context)
                 end
                 if self.ability.name == 'Fortune Teller' and G.GAME.consumeable_usage_total and G.GAME.consumeable_usage_total.tarot > 0 then
                     self:increment_counter(G.GAME.consumeable_usage_total.tarot)
-                    self:set_counter(nil, G.GAME.consumeable_usage_total.tarot)
                 end
                 if self.ability.name == 'Gros Michel' then
                     self:increment_counter(self.ability.extra.mult)

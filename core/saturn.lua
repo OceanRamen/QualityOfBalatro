@@ -88,5 +88,5 @@ end
 
 function Saturn:write_settings()
   nativefs.write(self.MOD_PATH .. "user_settings.lua", STR_PACK(self.SETTINGS))
-  update_all_counters()
+  update_all_counters(true)
 end

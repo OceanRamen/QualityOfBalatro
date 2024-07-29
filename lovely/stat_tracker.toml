@@ -150,3 +150,53 @@ payload = '''
   self:increment_counter(self.ability.extra)
 '''
 match_indent = true
+
+[[patches]] # Matador
+[patches.pattern]
+target = "card.lua"
+pattern = '''if self.ability.name == 'Cartomancer' and not (context.blueprint_card or self).getting_sliced and #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then'''
+position = "after"
+payload = '''
+  self:increment_counter(1)
+'''
+match_indent = true
+
+[[patches]] # Sixth Sense
+[patches.pattern]
+target = "card.lua"
+pattern = '''if #G.consumeables.cards + G.GAME.consumeable_buffer < G.consumeables.config.card_limit then'''
+position = "after"
+payload = '''
+  self:increment_counter(1)
+'''
+match_indent = true
+
+[[patches]] # Vagabond
+[patches.pattern]
+target = "card.lua"
+pattern = '''if G.GAME.dollars <= self.ability.extra then'''
+position = "after"
+payload = '''
+  self:increment_counter(1)
+'''
+match_indent = true
+
+[[patches]] # Superposition
+[patches.pattern]
+target = "card.lua"
+pattern = '''if aces >= 1 and next(context.poker_hands["Straight"]) then'''
+position = "after"
+payload = '''
+  self:increment_counter(1)
+'''
+match_indent = true
+
+[[patches]] # Seance
+[patches.pattern]
+target = "card.lua"
+pattern = '''if next(context.poker_hands[self.ability.extra.poker_hand]) then'''
+position = "after"
+payload = '''
+  self:increment_counter(1)
+'''
+match_indent = true

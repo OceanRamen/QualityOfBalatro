@@ -12,10 +12,8 @@ function Saturn:set_globals()
   self.SETTINGS = {
     modules = {
       stattrack = {
-        enabled = true,
         features = {
-          joker_tracking = {
-            enabled = true, 
+          joker_tracking = { 
             groups = {
               money_generators = true, 
               card_generators = true, 
@@ -23,7 +21,6 @@ function Saturn:set_globals()
               chips_plus = false, 
               mult_plus = false, 
               mult_mult = false,
-              compact_view = false,
             },
           },
         },

@@ -388,10 +388,99 @@ function s_create_card_display(args)
   return t
 end
 
+function CardArea:s_create_view_deck()
+  self.children.view_deck = UIBox{
+    definition = {n=G.UIT.ROOT, config = {align = 'cm', padding = 0.1, r =0.1, colour = G.C.CLEAR}, nodes={
+      {n=G.UIT.R, config={align = "cm", padding = 0.05, r =0.1, colour = adjust_alpha(G.C.BLACK, 0.5)}, nodes={
+        {n=G.UIT.R, config={align = "cm", maxw = 2}, nodes={
+          {n=G.UIT.T, config={text = localize('k_view'), scale = 0.48, colour = G.C.WHITE, shadow = true}}
+        }},
+        {n=G.UIT.R, config={align = "cm", maxw = 2}, nodes={
+          {n=G.UIT.T, config={text = localize('k_deck'), scale = 0.38, colour = G.C.WHITE, shadow = true}}
+          }},
+        }},
+      }},
+    config = { align = 'cm', offset = {x=0,y=0}, major = self.cards[1] or self, parent = self}
+  }
+  self.children.view_deck.states.collide.can = false
+end
+
+function CardArea:s_align_cards(deck_height)
+  for k, card in ipairs(self.cards) do
+      -- if card.facing == 'front' then card:flip() end
+
+      if not card.states.drag.is then
+          card.T.x = self.T.x + 0.5*(self.T.w - card.T.w) + self.shadow_parrallax.x*deck_height*(#self.cards/(self == G.deck and 1 or 2) - k) + 0.9*self.shuffle_amt*(1 - k*0.01)*(k%2 == 1 and 1 or -0)
+          card.T.y = self.T.y + 0.5*(self.T.h - card.T.h) + self.shadow_parrallax.y*deck_height*(#self.cards/(self == G.deck and 1 or 2) - k)
+          card.T.r = 0 + 0.3*self.shuffle_amt*(1 + k*0.05)*(k%2 == 1 and 1 or -0)
+          card.T.x = card.T.x + card.shadow_parrallax.x/30
+      end
+  end
+end
+
+function s_create_deck_display(args)
+  args = args or {}
+  args._type = args._type or 'Back'
+  args.col = args.col or 5
+  args.row = args.row or 3
+  args.specific_center = args.specific_center or nil
+  local deck_tables = {}
+  local cards_per_page = args.col*args.row
+  local current_center = 0
+
+  S.card_display = {}
+
+  for i = 1, args.row do
+    local row = {n=G.UIT.R, config={align = "cm", padding = 0.07, no_fill = true}, nodes={}}
+    for j = 1, args.col do
+      S.card_display[#S.card_display+1] = CardArea(
+        G.ROOM.T.x + 0.2*G.ROOM.T.w/args.row,G.ROOM.T.h,
+        G.CARD_W,
+        0.95*G.CARD_H, 
+        {card_limit = 1, type = 'shop', highlight_limit = 0, collection = false})
+      table.insert(row.nodes, 
+      {n=G.UIT.C, config={align = "cm", padding = 0, no_fill = true}, nodes={
+        {n=G.UIT.O, config={colour = G.C.CLEAR, object = S.card_display[#S.card_display]}}
+      }}
+      )
+    end
+    table.insert(deck_tables, row)
+  end
+
+  if args.specific_center then
+    local center = args.specific_center
+    local card = Card(S.card_display[1].T.x + S.card_display[1].T.w/args.row, S.card_display[1].T.y, G.CARD_W, G.CARD_H, nil, center)
+    S.card_display[1]:emplace(card)
+    return {
+      {n=G.UIT.R, config={align = "cm", r = 0.1, colour = G.C.CLEAR, emboss = 0.05}, nodes=deck_tables},
+    }
+  end
+
+  for i = 1, #S.card_display do
+    current_center = current_center + 1
+    local center = G.P_CENTER_POOLS[args._type][current_center + (S.current_page*(args.row*args.col))]
+    if not center then break end
+    local card = Card(S.card_display[i].T.x + S.card_display[i].T.w/args.row, S.card_display[i].T.y, G.CARD_W, G.CARD_H, G.P_CARDS.empty, center)
+    card.tilt_var = {mx = 0, my = 0, dx = 0, dy = 0, amt = 0}
+    card.ambient_tilt = 0
+    S.card_display[i]:emplace(card)
+  end
+  
+  local t = {
+    {n=G.UIT.R, config={align = "cm", r = 0.1, colour = G.C.CLEAR, emboss = 0.05}, nodes=deck_tables}, 
+    -- {n=G.UIT.R, config={align = "cm",}, nodes = s_create_page_cycle_options({_type = args._type, colour = lighten(G.C.GREEN, 0.03), _type = args._type, row = args.row, col = args.col})}
+  }
+  return t
+end
+
 local card_click_ref = Card.click
 function Card:click() 
-  if self.s_stats then
-    G.FUNCS.card_stats(self)
+  if self.s_stats and self.config.center.discovered then
+    if self.set == 'Back' then
+      G.FUNCS.deck_stats(self)
+    else
+      G.FUNCS.card_stats(self)
+    end
   end
   card_click_ref(self)
 end
@@ -691,12 +780,12 @@ function s_create_consumable_stats_page(args)
 end
 
 function s_create_consumable_usage(args)
-  local used = G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][args.config.center.key].count
+  local used = G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][args.config.center.key] and G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][args.config.center.key].count or 0
   local total_used = 0
 
   for k, v in pairs(G.P_CENTERS) do
     if v.set == args.ability.set then
-      total_used = total_used + (G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][k].count or 0)
+      total_used = total_used + ((G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][k] and G.PROFILES[G.SETTINGS.profile]['consumeable_usage'][k].count) or 0)
     end
   end
 
@@ -761,7 +850,7 @@ function s_create_consumable_usage(args)
                 }
               }
             },
-            {
+            _FUNNY_MODE and {
               n = G.UIT.R,
               config = {
                 align = 'cm',
@@ -772,7 +861,7 @@ function s_create_consumable_usage(args)
                   n = G.UIT.T,
                   config = {
                     align = 'cm',
-                    text = round2(((used/total_used)*100), 2)..'% or Total '..args.ability.set..'s used',
+                    text = round2(((used/total_used)*100), 2)..'% of Total '..args.ability.set..'s used',
                     scale = 0.4,
                     colour = G.C.UI.TEXT_LIGHT,
                     shadow = true,
@@ -800,6 +889,82 @@ function s_create_joker_wl(args)
   local losses = {}
   local win_total = 0
   local loss_total = 0
+  if not G.PROFILES[G.SETTINGS.profile]['joker_usage'][args.config.center.key] then 
+    return {
+      {
+        n = G.UIT.R,
+        config = {
+          align = 'cm',
+          padding = 0.2,
+          r = 0.1,
+          colour = G.C.L_BLACK,
+          outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+          outline = 1.15,
+        },
+        nodes = {
+          {
+            n = G.UIT.R,
+            config = {
+              align = 'cm',
+              padding = 0.02,
+            },
+            nodes = {
+              {
+                n = G.UIT.T,
+                config = {
+                  align = 'cm',
+                  text = 'Wins/Losses',
+                  scale = 0.4,
+                  colour = G.C.UI.TEXT_LIGHT,
+                  shadow = true,
+                },
+              }
+            }
+          },
+          {
+            n = G.UIT.R,
+            config = {
+              align = 'cm',
+              padding = 0.02,
+            },
+            nodes = {
+              {
+                n = G.UIT.T,
+                config = {
+                  align = 'cm',
+                  text = '0 / 0',
+                  scale = 0.4,
+                  colour = G.C.UI.TEXT_LIGHT,
+                  shadow = true,
+                },
+              }
+            }
+          },
+          {
+            n = G.UIT.R,
+            config = {
+              align = 'cm',
+              padding = 0.1,
+              r = 0.1,
+              colour = G.C.BLACK,
+              outline_colour = lighten(G.C.JOKER_GREY, 0.5),
+              outline = 1.15,
+            },
+            nodes = {
+              {
+                n = G.UIT.R,
+                config = {
+                  align = 'cm',
+                  padding = 0.05,
+                },
+                nodes = s_card_stake_stats({{0,0,0,0,0,0,0,0,},{0,0,0,0,0,0,0,0,},})
+              },
+            }
+          }
+        }
+      }
+    }
+  end
 
   for i = 1, 8 do
     wins[i] = G.PROFILES[G.SETTINGS.profile]['joker_usage'][args.config.center.key].wins[i] or 0

@@ -65,6 +65,7 @@ G.FUNCS.saturn_preferences = function(e)
   local _buttons = {
     {label = 'Animation Skip', toggle_ref = ref_table.remove_animations, ref_value = 'enabled',},
     {label = 'Compact View', toggle_ref = ref_table.compact_view, ref_value = 'enabled'},
+    {label = 'Show Stickers', toggle_ref = ref_table.show_stickers, ref_value = 'enabled',},
   }
   local _tabs = {
     {label = "Features", button_ref = 'saturn_features'},
@@ -94,6 +95,7 @@ G.FUNCS.saturn_stats = function(e)
     {label = 'Tarot Cards', button_ref = 'view_tarots', button_label = 'View', remove_enable = true,},
     {label = 'Planet Cards', button_ref = 'view_planets', button_label = 'View', remove_enable = true,},
     {label = 'Spectral Cards', button_ref = 'view_spectrals', button_label = 'View', remove_enable = true,},
+    {label = 'Decks', button_ref = 'view_decks', button_label = 'View', remove_enable = true,},
   }
   local _tabs = {
     {label = "Features", button_ref = 'saturn_features'},
@@ -266,6 +268,21 @@ G.FUNCS.view_spectrals = function(e)
   })
 end
 
+-- deck stats
+G.FUNCS.view_decks = function(e)
+  G.SETTINGS.paused = true
+
+  local deck_display = {_type = 'Back', col = 5, row = 3,}
+
+  G.FUNCS.overlay_menu({
+    definition = s_create_options({
+      back_func = 'saturn_stats',
+      title = 'Click on a Deck to view Stats',
+      nodes = s_create_deck_display(deck_display),
+    })
+  })
+end
+
 -- individual card stats view buttons
 
 -- specific card stats
@@ -275,6 +292,19 @@ G.FUNCS.card_stats = function(e)
   G.FUNCS.overlay_menu({
     definition = s_create_options({
       back_func = 'view_'..e.ability.set:lower()..'s',
+      title = localize({type = 'name_text', set = e.ability.set, key = e.config.center.key}),
+      nodes = s_create_stats_page(e)
+    })
+  })
+end
+
+-- specific deck stats
+G.FUNCS.deck_stats = function(e)
+  G.SETTINGS.paused = true
+
+  G.FUNCS.overlay_menu({
+    definition = s_create_options({
+      back_func = 'view_decks',
       title = localize({type = 'name_text', set = e.ability.set, key = e.config.center.key}),
       nodes = s_create_stats_page(e)
     })
