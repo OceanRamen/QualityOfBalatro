@@ -18,7 +18,7 @@ local card_set_seal_ref = Card.set_seal
 -- @param e Parameter e.
 -- @param f Parameter f.
 function card_eval_status_text(a, b, c, d, e, f)
-  if not S.SETTINGS.modules.remove_animations.enabled then
+  if not S.SETTINGS.modules.preferences.remove_animations.enabled then
     card_eval_status_text_ref(a, b, c, d, e, f)
   end
 end
@@ -26,7 +26,7 @@ end
 --- Juice card.
 -- @param x Parameter x.
 function juice_card(x)
-  if not S.SETTINGS.modules.remove_animations.enabled then
+  if not S.SETTINGS.modules.preferences.remove_animations.enabled then
     juice_card_ref(x)
   end
 end
@@ -35,7 +35,7 @@ end
 -- @param mod Amount to modify.
 -- @param instant Whether the modification is instant.
 function ease_dollars(mod, instant)
-  if S.SETTINGS.modules.remove_animations.enabled then
+  if S.SETTINGS.modules.preferences.remove_animations.enabled then
     if mod > 0 then
       inc_career_stat("c_dollars_earned", mod)
     end
@@ -163,7 +163,7 @@ end
 -- @param config Configuration table.
 -- @param vals Values to update.
 function update_hand_text(config, vals)
-  if S.SETTINGS.modules.remove_animations.enabled then
+  if S.SETTINGS.modules.preferences.remove_animations.enabled then
     if G.latest_uht then
       local chips = G.latest_uht.vals.chips
       local mult = G.latest_uht.vals.mult
