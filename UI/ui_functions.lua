@@ -383,7 +383,7 @@ function s_create_card_display(args)
   
   local t = {
     {n=G.UIT.R, config={align = "cm", r = 0.1, colour = G.C.CLEAR, emboss = 0.05}, nodes=deck_tables}, 
-    {n=G.UIT.R, config={align = "cm",}, nodes = s_create_page_cycle_options({_type = args._type, colour = lighten(G.C.GREEN, 0.03), _type = args._type, row = args.row, col = args.col})}
+    {n=G.UIT.R, config={align = "cm",}, nodes = s_create_page_cycle_options({_type = args._type, colour = lighten(G.C.GREEN, 0.03), row = args.row, col = args.col})}
   }
   return t
 end

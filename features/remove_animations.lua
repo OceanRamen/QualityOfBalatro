@@ -214,7 +214,7 @@ end
 -- @param c Parameter c.
 function Card:start_materialize(a, b, c)
   if
-    S.SETTINGS.modules.remove_animations.enabled and (S.calculating_joker or S.calculating_score or S.calculating_card)
+    S.SETTINGS.modules.preferences.remove_animations.enabled and (S.calculating_joker or S.calculating_score or S.calculating_card)
   then
     return
   end
@@ -228,7 +228,7 @@ end
 -- @param d Parameter d.
 function Card:start_dissolve(a, b, c, d)
   if
-    S.SETTINGS.modules.remove_animations.enabled and (S.calculating_joker or S.calculating_score or S.calculating_card)
+    S.SETTINGS.modules.preferences.remove_animations.enabled and (S.calculating_joker or S.calculating_score or S.calculating_card)
   then
     self:remove()
     return
@@ -245,7 +245,7 @@ function Card:set_seal(a, b, immediate)
     self,
     a,
     b,
-    S.SETTINGS.modules.remove_animations.enabled and (S.calculating_joker or S.calculating_score or S.calculating_card)
+    S.SETTINGS.modules.preferences.remove_animations.enabled and (S.calculating_joker or S.calculating_score or S.calculating_card)
       or immediate
   )
 end
