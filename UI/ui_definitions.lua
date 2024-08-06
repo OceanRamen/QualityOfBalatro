@@ -74,124 +74,288 @@ G.FUNCS.saturn_features = function(e)
   	})
 end
 
--- tab functions
-
-S.TAB_FUNCS = {}
-
--- modules tab
-S.TAB_FUNCS.saturn_features = function(e)
-
-  	local ref_table = S.TEMP_SETTINGS.modules
-  	local _buttons = {
-    	{label = 'StatTracker', toggle_ref = ref_table.stattrack, ref_value = 'enabled', button_ref = 'config_stattracker',},
-    	{label = 'DeckViewer+', toggle_ref = ref_table.deckviewer_plus, ref_value = 'enabled', button_ref = 'config_deckviewer',},
-    	{label = 'Challenger+', toggle_ref = ref_table.challenger_plus, ref_value = 'enabled', button_ref = 'config_challenger',},
-      {label = 'Run Timer', toggle_ref = ref_table.run_timer, ref_value = 'enabled', button_ref = 'config_run_timer',},
-  	}
-  	local _tabs = {
-    	{label = 'Modules'},
-    	{label = 'Options', button_ref = 's_change_tab', tab_func = 'saturn_options'},
-    	{label = 'Stats', button_ref = 's_change_tab', tab_func = 'saturn_stats'},
-  	}
-    local t = {
-      ref_table = ref_table,
-      _buttons = _buttons,
-      _tabs = _tabs,
+function G.FUNCS.config_stattracker(e)
+  G.SETTINGS.paused = true
+  local ref_table = S.TEMP_SETTINGS.modules.stattrack.features.joker_tracking.groups
+  local settings = {
+    { val = "money_generators", table = ref_table, label = "Money Generators" },
+    { val = "card_generators", table = ref_table, label = "Card Generators" },
+    { val = "chips_plus", table = ref_table, label = "+Chip Jokers" },
+    { val = "mult_plus", table = ref_table, label = "+Mult Jokers" },
+    { val = "mult_mult", table = ref_table, label = "xMult Jokers" },
+    { val = "miscellaneous", table = ref_table, label = "Miscellaneous" },
+    { val = "compact_view", table = ref_table, label = "Compact View" },
+  }
+  local col_left = { n = G.UIT.C, config = { align = "tl", padding = 0.05 }, nodes = {} }
+  local col_right = { n = G.UIT.C, config = { align = "tl", padding = 0.05 }, nodes = {} }
+  for k, v in pairs(settings) do
+    col_left.nodes[#col_left.nodes + 1] = {
+      n = G.UIT.R,
+      config = { align = "cl", padding = 0.1 },
+      nodes = {
+        {
+          n = G.UIT.R,
+          config = { align = "cl", padding = 0.075 },
+          nodes = {
+            {
+              n = G.UIT.O,
+              config = {
+                object = DynaText({
+                  string = v.label,
+                  colours = { G.C.WHITE },
+                  shadow = true,
+                  scale = 0.5,
+                }),
+              },
+            },
+          },
+        },
+      },
     }
-  	return t
-end
-
--- options tab
-S.TAB_FUNCS.saturn_options = function(e)
-  	local ref_table = S.TEMP_SETTINGS.modules.preferences
-  	local _buttons = {
-    	{label = 'Animation Skip', toggle_ref = ref_table.remove_animations, ref_value = 'enabled',},
-    	{label = 'Compact View', toggle_ref = ref_table.compact_view, ref_value = 'enabled'},
-    	{label = 'Show Stickers', toggle_ref = ref_table.show_stickers, ref_value = 'enabled',},
-      {label = 'Console', toggle_ref = ref_table.console, ref_value = 'enabled',},
-  	}
-  	local _tabs = {
-		{label = "Modules", button_ref = 's_change_tab', tab_func = 'saturn_features'},
-		{label = 'Options',},
-		{label = 'Stats', button_ref = 's_change_tab', tab_func = 'saturn_stats',},
-	}
-
-	local t = {
-      ref_table = ref_table,
-      _buttons = _buttons,
-      _tabs = _tabs,
-    }
-  return t
-end
-
--- stats tab
-S.TAB_FUNCS.saturn_stats = function(e)
-	S.current_page = 0
-	
-	local _buttons = {
-		{label = 'General Stats', button_ref = 'view_general', button_label = 'View', remove_enable = true,},
-		{label = localize('b_jokers'), button_ref = 'view_jokers', button_label = 'View', remove_enable = true,},
-		{label = 'Tarot Cards', button_ref = 'view_tarots', button_label = 'View', remove_enable = true,},
-		{label = 'Planet Cards', button_ref = 'view_planets', button_label = 'View', remove_enable = true,},
-		{label = 'Spectral Cards', button_ref = 'view_spectrals', button_label = 'View', remove_enable = true,},
-		{label = 'Decks', button_ref = 'view_decks', button_label = 'View', remove_enable = true,},
-	}
-	local _tabs = {
-		{label = "Modules", button_ref = 's_change_tab', tab_func = 'saturn_features'},
-		{label = 'Options', button_ref = 's_change_tab', tab_func = 'saturn_options'},
-		{label = 'Stats',},
-	}
-
-	local t = {
-      ref_table = ref_table,
-      _buttons = _buttons,
-      _tabs = _tabs,
-    }
-  return t
-end
-
--- config buttons
-
--- stat tracker config
-G.FUNCS.config_stattracker = function(e)
-	G.SETTINGS.paused = true
-
-	local ref_table = S.TEMP_SETTINGS.modules.stattrack.features.joker_tracking.groups
-	local _buttons = {
-		{label = 'Money Generators', toggle_ref = ref_table, ref_value = 'money_generators', remove_enable = true,},
-		{label = 'Card Generators', toggle_ref = ref_table, ref_value = 'card_generators', remove_enable = true,},
-		{label = '+ Chip Jokers', toggle_ref = ref_table, ref_value = 'chips_plus', remove_enable = true,},
-		{label = '+ Mult Jokers', toggle_ref = ref_table, ref_value = 'mult_plus', remove_enable = true,},
-		{label = 'x Mult Jokers', toggle_ref = ref_table, ref_value = 'mult_mult', remove_enable = true,},
-		{label = 'Miscellaneous', toggle_ref = ref_table, ref_value = 'miscellaneous', remove_enable = true,},
-	}
-
-	G.FUNCS.overlay_menu({
-		definition = s_create_options({
-		apply_func = 'apply_settings',
-		back_func = 'saturn_features',
-		title = 'Joker StatTracker Options',
-		nodes = s_create_buttons(_buttons),
-		})
-	})
-end
-
--- run timer config
-G.FUNCS.config_run_timer = function(e)
-	G.SETTINGS.paused = true
-
-	local _buttons = {
-		{label = 'nothing to config yet', remove_enable = true,},
-	}
-
-	G.FUNCS.overlay_menu({
-		definition = s_create_options({
-		apply_func = 'apply_settings',
-		back_func = 'saturn_features',
-		title = 'Run Timer Options',
-		nodes = s_create_buttons(_buttons),
-		})
-	})
+    col_right.nodes[#col_right.nodes + 1] = s_create_toggle({
+      label = "",
+      ref_table = v.table,
+      ref_value = v.val,
+      active_colour = G.C.BOOSTER,
+    })
+  end
+  local args = {}
+  local apply_func = "apply_settings"
+  local back_func = "saturn_preferences"
+  print(inspectDepth(ref_table))
+  local t = {
+    n = G.UIT.ROOT,
+    config = {
+      align = "cm",
+      minw = G.ROOM.T.w * 5,
+      minh = G.ROOM.T.h * 5,
+      padding = 0.1,
+      r = 0.1,
+      colour = args.bg_colour or { G.C.GREY[1], G.C.GREY[2], G.C.GREY[3], 0.7 },
+    },
+    nodes = {
+      {
+        n = G.UIT.R,
+        config = {
+          align = "cm",
+          minh = 1,
+          r = 0.3,
+          padding = 0.07,
+          minw = 1,
+          colour = args.outline_colour or G.C.JOKER_GREY,
+          emboss = 0.1,
+        },
+        nodes = {
+          {
+            n = G.UIT.C,
+            config = { align = "cm", minh = 1, r = 0.2, padding = 0.2, minw = 1, colour = args.colour or G.C.L_BLACK },
+            nodes = {
+              {
+                n = G.UIT.R,
+                config = { align = "cm", padding = args.padding or 0, minw = args.minw or 7 },
+                nodes = {
+                  {
+                    n = G.UIT.R,
+                    config = { align = "cm" },
+                    padding = 0,
+                    nodes = {
+                      {
+                        n = G.UIT.R,
+                        config = {
+                            align = "cm",
+                            colour = lighten(G.C.JOKER_GREY, 0.5),
+                            r = 0.1,
+                            padding = 0.05,
+                            emboss = 0.05,
+                        },
+                        nodes = {
+                          {
+                            n = G.UIT.R,
+                            config = {
+                                align = "cm",
+                                colour = G.C.BLACK,
+                                r = 0.1,
+                                padding = 0.2,
+                            },
+                            nodes = {
+                              {
+                                n = G.UIT.O,
+                                config = {
+                                  object = DynaText({
+                                    string = "Joker Tracking Options",
+                                    colours = { G.C.WHITE },
+                                    shadow = true,
+                                    scale = 0.4,
+                                  }),
+                                },
+                              }
+                            }
+                          }
+                        }
+                      },
+                    },
+                  },
+                }
+              },
+              {
+                n = G.UIT.R,
+                config = {
+                    align = "cm",
+                    colour = lighten(G.C.JOKER_GREY, 0.5),
+                    r = 0.1,
+                    padding = 0.05,
+                    emboss = 0.05,
+                },
+                nodes = {
+                  {
+                    n = G.UIT.R,
+                    config = {
+                        align = "cm",
+                        colour = G.C.BLACK,
+                        r = 0.1,
+                        padding = 0.1,
+                    },
+                    nodes = {
+                      {
+                        n = G.UIT.R,
+                        config = {
+                          align = "cm",
+                          colour = G.C.CLEAR,
+                          r = 0.1,
+                        },
+                        nodes = {
+                          col_left,
+                          col_right,
+                        }
+                      },
+                      {
+                        n = G.UIT.R,
+                        config = {
+                          align = "bm",
+                          minh = 1,
+                          r = 0.2,
+                          padding = 0.2,
+                          colour = args.colour or G.C.CLEAR
+                        },
+                        nodes = {
+                          not args.no_apply and {
+                            n = G.UIT.R,
+                            config = {
+                                align = "cm",
+                                colour = lighten(G.C.JOKER_GREY, 0.5),
+                                r = 0.1,
+                                padding = 0.06,
+                                emboss = 0.05,
+                            },
+                            nodes = {
+                              {
+                                n = G.UIT.R,
+                                config = {
+                                  id = args.apply_id or "overlay_menu_apply_button",
+                                  align = "cm",
+                                  minw = args.minw or 7.8,
+                                  button_delay = args.back_delay,
+                                  padding = 0.13,
+                                  r = 0.1,
+                                  hover = true,
+                                  colour = args.apply_colour or G.C.GREEN,
+                                  button = apply_func,
+                                  shadow = false,
+                                  focus_args = { nav = "wide", button = "a", snap_to = args.snap_back },
+                                },
+                                nodes = {
+                                  {
+                                    n = G.UIT.R,
+                                    config = { align = "cm", padding = 0, no_fill = true },
+                                    nodes = {
+                                      {
+                                        n = G.UIT.T,
+                                        config = {
+                                          id = args.apply_id or nil,
+                                          text = args.apply_label or "Apply",
+                                          scale = 0.5,
+                                          colour = G.C.UI.TEXT_LIGHT,
+                                          shadow = true,
+                                          func = not args.no_pip and "set_button_pip" or nil,
+                                          focus_args = not args.no_pip and { button = args.apply_button or "a" } or nil,
+                                        },
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                            }
+                          },
+                          not args.no_back and {
+                            n = G.UIT.R,
+                            config = {
+                                align = "cm",
+                                colour = lighten(G.C.JOKER_GREY, 0.5),
+                                r = 0.1,
+                                padding = 0.05,
+                                emboss = 0.05,
+                            },
+                            nodes = {
+                              {
+                                n = G.UIT.R,
+                                config = {
+                                  id = args.back_id or "overlay_menu_back_button",
+                                  align = "cm",
+                                  minw = args.minw or 7.8,
+                                  button_delay = args.back_delay,
+                                  padding = 0.13,
+                                  r = 0.1,
+                                  hover = true,
+                                  colour = args.back_colour or G.C.ORANGE,
+                                  button = back_func,
+                                  shadow = false,
+                                  focus_args = { nav = "wide", button = "b", snap_to = args.snap_back },
+                                },
+                                nodes = {
+                                  {
+                                    n = G.UIT.R,
+                                    config = { align = "cm", padding = 0, no_fill = true },
+                                    nodes = {
+                                      {
+                                        n = G.UIT.T,
+                                        config = {
+                                          id = args.back_id or nil,
+                                          text = args.back_label or localize("b_back"),
+                                          scale = 0.5,
+                                          colour = G.C.UI.TEXT_LIGHT,
+                                          shadow = true,
+                                          func = not args.no_pip and "set_button_pip" or nil,
+                                          focus_args = not args.no_pip and { button = args.back_button or "b" } or nil,
+                                        },
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                            }
+                          }
+                        },
+                      },
+                    }
+                  }
+                }
+              }
+            },
+          },
+        },
+      },
+      {
+        n = G.UIT.R,
+        config = { align = "cm" },
+        nodes = {
+          { n = G.UIT.O, config = { id = "overlay_menu_infotip", object = Moveable() } },
+        },
+      }
+    },
+  }
+  G.FUNCS.overlay_menu({
+    definition = t,
+  })
 end
 
 -- deckviewer config
