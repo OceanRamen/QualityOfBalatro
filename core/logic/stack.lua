@@ -325,7 +325,7 @@ function Card:dissolve_stack()
                 end
                 local card_limit = G.consumeables.config.card_limit
                 if (self.edition or {}).negative then
-                  card_limit = card_limit + 1
+                  card_limit = card_limit
                 end
                 local new_stack = copy_card(self)
                 new_stack.ignoreStack = true
@@ -363,7 +363,7 @@ function Card:split(amt)
       if self.ability.amt > 0 and self.ability.amt - amt > 0 then
         local card_limit = G.consumeables.config.card_limit
         if (self.edition or {}).negative then
-          card_limit = card_limit + 1
+          card_limit = card_limit
         end
         local new_stack = copy_card(self)
         new_stack.ignoreStack = true
